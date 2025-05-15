@@ -21,7 +21,7 @@ export class Doctor extends AggregateRoot {
   specialty: string;
 
   @Column({ type: 'text', nullable: true })
-  bio: string;
+  bio?: string;
 
   @CreateDateColumn()
   createdAt: Date;

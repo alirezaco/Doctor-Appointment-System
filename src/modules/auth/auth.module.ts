@@ -7,15 +7,21 @@ import { LoginHandler } from './application/commands/handlers/login.handler';
 import { UsersModule } from '../users/users.module';
 import { SharedModule } from '../../shared/shared.module';
 import { JwtStrategy } from './infrastructure/strategries/jwt.strategy';
+import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 const CommandHandlers = [LoginHandler];
 
 @Module({
   imports: [
     CqrsModule,
     PassportModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'secret',
-      signOptions: { expiresIn: '1d' },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'secret',
+        signOptions: { expiresIn: '1d' },
+      }),
+      inject: [ConfigService],
     }),
     UsersModule,
     SharedModule,

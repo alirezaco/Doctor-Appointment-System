@@ -46,10 +46,10 @@ async function bootstrap() {
       .addBearerAuth()
       .build();
     const document = SwaggerModule.createDocument(app, config);
-    SwaggerModule.setup('api', app, document);
+    SwaggerModule.setup('doc', app, document);
 
     logger.log(
-      `Swagger documentation is available at: http://localhost:${port}/api`,
+      `Swagger documentation is available at: http://localhost:${port}/doc`,
     );
   }
 

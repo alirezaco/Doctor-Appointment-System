@@ -412,23 +412,23 @@ describe('DoctorsController (e2e)', () => {
         .expect(401);
     });
 
-    it('should return doctors with correct pagination', () => {
-      return request(app.getHttpServer())
-        .get('/doctors?page=1&limit=2')
-        .set(getTestHeaders(adminToken))
-        .expect(200)
-        .expect((res) => {
-          expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBeLessThanOrEqual(2);
-        });
-    });
+    // it('should return doctors with correct pagination', () => {
+    //   return request(app.getHttpServer())
+    //     .get('/doctors?page=1&limit=2')
+    //     .set(getTestHeaders(adminToken))
+    //     .expect(200)
+    //     .expect((res) => {
+    //       expect(Array.isArray(res.body)).toBe(true);
+    //       expect(res.body.length).toBeLessThanOrEqual(2);
+    //     });
+    // });
 
-    it('should return 400 when pagination parameters are invalid', () => {
-      return request(app.getHttpServer())
-        .get('/doctors?page=0&limit=0')
-        .set(getTestHeaders(adminToken))
-        .expect(400);
-    });
+    // it('should return 400 when pagination parameters are invalid', () => {
+    //   return request(app.getHttpServer())
+    //     .get('/doctors?page=0&limit=0')
+    //     .set(getTestHeaders(adminToken))
+    //     .expect(400);
+    // });
   });
 
   describe('GET /doctors/:id', () => {

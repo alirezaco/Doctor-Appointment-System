@@ -12,6 +12,10 @@ import {
 import { Appointment } from '../../../infrastructure/entities/appointment.entity';
 import { AppointmentCreatedEvent } from '../../../domain/events/appointment-created.event';
 import { RabbitMQProxy } from 'src/shared/proxy/rabbitmq.proxy';
+import { Doctor } from 'src/modules/doctors/infrastructure/entities/doctor.entity';
+import { User } from 'src/modules/users/infrastructure/entities/user.entity';
+import { IUserRepository } from 'src/modules/users/domain/repositories/user.repository.interface';
+import { USER_REPOSITORY } from 'src/modules/users/domain/repositories/user.repository.interface';
 
 @CommandHandler(CreateAppointmentCommand)
 export class CreateAppointmentHandler
@@ -24,6 +28,8 @@ export class CreateAppointmentHandler
     private readonly appointmentRepository: IAppointmentRepository,
     @Inject(DOCTOR_REPOSITORY)
     private readonly doctorRepository: IDoctorRepository,
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
     private readonly eventBus: EventBus,
     private readonly rabbitMQProxy: RabbitMQProxy,
   ) {}
@@ -35,8 +41,14 @@ export class CreateAppointmentHandler
     );
 
     // Verify doctor exists
-    await this.doctorRepository.findById(createAppointmentDto.doctorId);
+    const doctor: Doctor = await this.doctorRepository.findById(
+      createAppointmentDto.doctorId,
+    );
     this.logger.debug(`Doctor ${createAppointmentDto.doctorId} verified`);
+
+    //Get Patient
+    const patient: User = await this.userRepository.findById(patientId);
+    this.logger.debug(`Patient ${patientId} verified`);
 
     // Check for overlapping appointments
     await this.appointmentRepository.findOverlapping(
@@ -49,8 +61,8 @@ export class CreateAppointmentHandler
     const appointment = new Appointment();
     Object.assign(appointment, {
       ...createAppointmentDto,
-      patient: { id: patientId },
-      doctor: { id: createAppointmentDto.doctorId },
+      patient,
+      doctor,
     });
 
     const createdAppointment =

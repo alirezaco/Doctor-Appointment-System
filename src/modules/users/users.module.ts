@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { CqrsModule } from '@nestjs/cqrs';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UsersController } from './presentation/controllers/users.controller';
@@ -26,4 +26,5 @@ const QueryHandlers = [GetUserHandler, GetUsersHandler];
   ],
   exports: [USER_REPOSITORY],
 })
+@Global()
 export class UsersModule {}

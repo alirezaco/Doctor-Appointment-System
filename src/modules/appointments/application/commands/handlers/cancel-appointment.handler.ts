@@ -6,7 +6,12 @@ import {
 } from '../../../domain/repositories/appointment.repository.interface';
 import { Appointment } from '../../../infrastructure/entities/appointment.entity';
 import { AppointmentCancelledEvent } from '../../../domain/events/appointment-cancelled.event';
-import { ForbiddenException, Inject } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Inject,
+} from '@nestjs/common';
+import { AppointmentStatus } from 'src/modules/appointments/infrastructure/enums/appointment-status.enum';
 
 @CommandHandler(CancelAppointmentCommand)
 export class CancelAppointmentHandler
@@ -24,17 +29,27 @@ export class CancelAppointmentHandler
     );
 
     this.canCancelAppointment(appointment, command.userId);
+    this.checkValidStatus(appointment.status, [AppointmentStatus.CANCELLED]);
 
     appointment.cancel();
-    await this.appointmentRepository.delete(appointment.id);
     this.eventBus.publish(new AppointmentCancelledEvent(appointment));
+    await this.appointmentRepository.update(appointment.id, appointment);
   }
 
   private canCancelAppointment(appointment: Appointment, userId: string): void {
-    if ([appointment.patient.id, appointment.doctor.id].includes(userId)) {
+    if (![appointment.patient.id, appointment.doctor.id].includes(userId)) {
       throw new ForbiddenException(
         'You are not allowed to cancel this appointment',
       );
+    }
+  }
+
+  private checkValidStatus(
+    status: AppointmentStatus,
+    invalidStatuses: AppointmentStatus[],
+  ): void {
+    if (invalidStatuses.includes(status)) {
+      throw new BadRequestException('Invalid appointment status');
     }
   }
 }

@@ -38,3 +38,33 @@ export const mockInvalidDoctorData = {
     extraField: 'should not be here',
   },
 };
+
+export const mockAppointment = {
+  startTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+  endTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(), // Tomorrow + 1 hour
+  notes: 'Regular checkup appointment',
+};
+
+export const mockInvalidAppointmentData = {
+  pastStartTime: {
+    ...mockAppointment,
+    startTime: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(), // Yesterday
+  },
+  pastEndTime: {
+    ...mockAppointment,
+    endTime: new Date(Date.now() - 23 * 60 * 60 * 1000).toISOString(), // Yesterday + 1 hour
+  },
+  endTimeBeforeStartTime: {
+    ...mockAppointment,
+    startTime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(), // Tomorrow + 1 hour
+    endTime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Tomorrow
+  },
+  longNotes: {
+    ...mockAppointment,
+    notes: 'a'.repeat(1001),
+  },
+  extraFields: {
+    ...mockAppointment,
+    extraField: 'should not be here',
+  },
+};

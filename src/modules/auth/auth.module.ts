@@ -9,6 +9,7 @@ import { SharedModule } from '../../shared/shared.module';
 import { JwtStrategy } from './infrastructure/strategries/jwt.strategy';
 import { ConfigModule } from '@nestjs/config';
 import { ConfigService } from '@nestjs/config';
+import { AuthUseCase } from './application/use-cases/auth.use-case';
 const CommandHandlers = [LoginHandler];
 
 @Module({
@@ -27,6 +28,6 @@ const CommandHandlers = [LoginHandler];
     SharedModule,
   ],
   controllers: [AuthController],
-  providers: [...CommandHandlers, JwtStrategy],
+  providers: [...CommandHandlers, JwtStrategy, AuthUseCase],
 })
 export class AuthModule {}

@@ -1,3 +1,5 @@
+import { UserRole } from 'src/shared/enums/user-role.enum';
+
 export const mockDoctor = {
   name: 'John Smith',
   specialty: 'Cardiology',
@@ -66,5 +68,36 @@ export const mockInvalidAppointmentData = {
   extraFields: {
     ...mockAppointment,
     extraField: 'should not be here',
+  },
+};
+
+export const mockUser = {
+  email: 'test@example.com',
+  password: 'password123',
+  firstName: 'Test',
+  lastName: 'User',
+  role: UserRole.PATIENT,
+};
+
+export const mockInvalidLoginData = {
+  invalidEmail: {
+    email: 'invalid-email',
+    password: 'password123',
+  },
+  emptyEmail: {
+    email: '',
+    password: 'password123',
+  },
+  emptyPassword: {
+    email: 'test@example.com',
+    password: '',
+  },
+  wrongPassword: {
+    email: 'test@example.com',
+    password: 'wrongpassword',
+  },
+  nonExistentUser: {
+    email: 'nonexistent@example.com',
+    password: 'password123',
   },
 };

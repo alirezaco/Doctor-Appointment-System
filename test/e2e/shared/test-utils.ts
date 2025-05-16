@@ -7,12 +7,18 @@ export const createAuthToken = (
   jwtService: JwtService,
   role: UserRole = UserRole.ADMIN,
   id: string = '1',
+  expiresIn: string = '1d',
 ): string => {
-  return jwtService.sign({
-    sub: id,
-    email: `${role.toLowerCase()}@example.com`,
-    role,
-  });
+  return jwtService.sign(
+    {
+      sub: id,
+      email: `${role.toLowerCase()}@example.com`,
+      role,
+    },
+    {
+      expiresIn: expiresIn,
+    },
+  );
 };
 
 export const getTestHeaders = (token: string) => ({

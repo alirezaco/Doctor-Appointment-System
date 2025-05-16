@@ -27,6 +27,7 @@ import { User } from 'src/modules/users/infrastructure/entities/user.entity';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { Roles } from 'src/shared/decorators/roles.decorator';
+import { GetUser } from 'src/shared/decorators/get-user.decorator';
 
 @ApiTags('users')
 @Controller('users')
@@ -37,6 +38,13 @@ export class UsersController {
     private readonly commandBus: CommandBus,
     private readonly queryBus: QueryBus,
   ) {}
+
+  @Get('me')
+  @ApiOperation({ summary: 'Get the current user' })
+  @ApiResponse({ status: 200, description: 'Return the current user' })
+  getCurrentUser(@GetUser() user: User): Promise<User> {
+    return this.queryBus.execute(new GetUserQuery(user.id));
+  }
 
   @Post()
   @Roles(UserRole.ADMIN)

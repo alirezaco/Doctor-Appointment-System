@@ -7,46 +7,72 @@ import {
   Param,
   Query,
   UseGuards,
-  Request,
   ParseDatePipe,
+  ParseUUIDPipe,
+  HttpStatus,
 } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { CreateAppointmentDto } from '../dtos/create-appointment.dto';
-import { CreateAppointmentCommand } from '../../application/commands/impl/create-appointment.command';
-import { CancelAppointmentCommand } from '../../application/commands/impl/cancel-appointment.command';
-import { GetDoctorAppointmentsQuery } from '../../application/queries/impl/get-doctor-appointments.query';
+import { AppointmentUseCase } from '../../application/use-cases/appointment.use-cae';
+import { GetUser } from 'src/shared/decorators/get-user.decorator';
+import { IUserToken } from 'src/shared/interfaces/user-token.interface';
+import {
+  CommonSwaggerAPIDecorator,
+  CommonSwaggerControllerDecorator,
+} from 'src/shared/decorators/common-swagger.decorator';
 
 @Controller('appointments')
 @UseGuards(JwtAuthGuard)
+@CommonSwaggerControllerDecorator('appointments')
 export class AppointmentsController {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly appointmentUseCase: AppointmentUseCase) {}
 
   @Post()
+  @CommonSwaggerAPIDecorator({
+    operation: 'Create a new appointment',
+    response: CreateAppointmentDto,
+    status: [
+      HttpStatus.CREATED,
+      HttpStatus.BAD_REQUEST,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.FORBIDDEN,
+      HttpStatus.NOT_FOUND,
+    ],
+    body: CreateAppointmentDto,
+  })
   async create(
     @Body() createAppointmentDto: CreateAppointmentDto,
-    @Request() req,
+    @GetUser() user: IUserToken,
   ) {
-    return this.commandBus.execute(
-      new CreateAppointmentCommand(createAppointmentDto, req.user.id),
-    );
+    return this.appointmentUseCase.create(createAppointmentDto, user.id);
   }
 
   @Get('doctor/:doctorId')
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get doctor appointments',
+    response: CreateAppointmentDto,
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
+    params: 'doctorId',
+    query: 'date',
+  })
   async getDoctorAppointments(
-    @Param('doctorId') doctorId: string,
+    @Param('doctorId', new ParseUUIDPipe({ version: '4' })) doctorId: string,
     @Query('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.queryBus.execute(
-      new GetDoctorAppointmentsQuery(doctorId, date),
-    );
+    return this.appointmentUseCase.getDoctorAppointments(doctorId, date);
   }
 
   @Delete(':id')
-  async cancel(@Param('id') id: string) {
-    return this.commandBus.execute(new CancelAppointmentCommand(id));
+  @CommonSwaggerAPIDecorator({
+    operation: 'Cancel an appointment',
+    response: CreateAppointmentDto,
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
+    params: 'id',
+  })
+  async cancel(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @GetUser() user: IUserToken,
+  ) {
+    return this.appointmentUseCase.cancel(id, user.id);
   }
 }

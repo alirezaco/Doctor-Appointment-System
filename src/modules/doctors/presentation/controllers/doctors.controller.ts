@@ -7,6 +7,7 @@ import {
   Param,
   UseGuards,
   ParseUUIDPipe,
+  HttpStatus,
 } from '@nestjs/common';
 import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
@@ -19,17 +20,9 @@ import { UpdateDoctorCommand } from '../../application/commands/impl/update-doct
 import { GetDoctorQuery } from '../../application/queries/impl/get-doctor.query';
 import { GetAllDoctorsQuery } from '../../application/queries/impl/get-all-doctors.query';
 import { UserRole } from 'src/shared/enums/user-role.enum';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiParam,
-  ApiBody,
-  ApiBearerAuth,
-} from '@nestjs/swagger';
+import { Doctor } from '../../infrastructure/entities/doctor.entity';
+import { CommonSwaggerAPIDecorator } from 'src/shared/decorators/common-swagger.decorator';
 
-@ApiTags('doctors')
-@ApiBearerAuth()
 @Controller('doctors')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DoctorsController {
@@ -40,66 +33,57 @@ export class DoctorsController {
 
   @Post()
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Create a new doctor' })
-  @ApiBody({ type: CreateDoctorDto })
-  @ApiResponse({
-    status: 201,
-    description: 'Doctor successfully created.',
-    type: CreateDoctorDto,
-  })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden. Only admin can create doctors.',
+  @CommonSwaggerAPIDecorator({
+    operation: 'Create a new doctor',
+    response: Doctor,
+    status: [
+      HttpStatus.CREATED,
+      HttpStatus.BAD_REQUEST,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.FORBIDDEN,
+    ],
+    body: CreateDoctorDto,
   })
   async create(@Body() createDoctorDto: CreateDoctorDto) {
     return this.commandBus.execute(new CreateDoctorCommand(createDoctorDto));
   }
 
   @Get()
-  @ApiOperation({ summary: 'Get all doctors' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return all doctors.',
-    type: [CreateDoctorDto],
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get all doctors',
+    response: [CreateDoctorDto],
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED],
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
   async findAll() {
     return this.queryBus.execute(new GetAllDoctorsQuery());
   }
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get a doctor by id' })
-  @ApiParam({ name: 'id', description: 'Doctor ID' })
-  @ApiResponse({
-    status: 200,
-    description: 'Return the doctor.',
-    type: CreateDoctorDto,
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get a doctor by id',
+    response: Doctor,
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
+    params: 'id',
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @ApiResponse({ status: 404, description: 'Doctor not found.' })
   async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
     return this.queryBus.execute(new GetDoctorQuery(id));
   }
 
   @Put(':id')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Update a doctor' })
-  @ApiParam({ name: 'id', description: 'Doctor ID' })
-  @ApiBody({ type: UpdateDoctorDto })
-  @ApiResponse({
-    status: 200,
-    description: 'Doctor successfully updated.',
-    type: UpdateDoctorDto,
+  @CommonSwaggerAPIDecorator({
+    operation: 'Update a doctor',
+    response: Doctor,
+    status: [
+      HttpStatus.OK,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.NOT_FOUND,
+      HttpStatus.BAD_REQUEST,
+      HttpStatus.FORBIDDEN,
+    ],
+    params: 'id',
+    body: UpdateDoctorDto,
   })
-  @ApiResponse({ status: 400, description: 'Bad request.' })
-  @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  @ApiResponse({
-    status: 403,
-    description: 'Forbidden. Only admin can update doctors.',
-  })
-  @ApiResponse({ status: 404, description: 'Doctor not found.' })
   async update(
     @Param('id') id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,

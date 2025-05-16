@@ -4,7 +4,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Appointment } from '../entities/appointment.entity';
 import { IAppointmentRepository } from '../../domain/repositories/appointment.repository.interface';
 import { AppointmentStatus } from '../enums/appointment-status.enum';

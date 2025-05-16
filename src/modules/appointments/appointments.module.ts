@@ -9,6 +9,7 @@ import { APPOINTMENT_REPOSITORY } from './domain/repositories/appointment.reposi
 import { GetDoctorAppointmentsHandler } from './application/queries/handlers/get-doctor-appointments.handler';
 import { DoctorsModule } from '../doctors/doctors.module';
 import { CancelAppointmentHandler } from './application/commands/handlers/cancel-appointment.handler';
+import { AppointmentUseCase } from './application/use-cases/appointment.use-cae';
 
 const CommandHandlers = [CreateAppointmentHandler, CancelAppointmentHandler];
 const QueryHandlers = [GetDoctorAppointmentsHandler];
@@ -23,6 +24,7 @@ const QueryHandlers = [GetDoctorAppointmentsHandler];
     },
     ...CommandHandlers,
     ...QueryHandlers,
+    AppointmentUseCase,
   ],
   exports: [APPOINTMENT_REPOSITORY],
 })

@@ -6,7 +6,7 @@ import {
 } from '../../../domain/repositories/appointment.repository.interface';
 import { Appointment } from '../../../infrastructure/entities/appointment.entity';
 import { AppointmentCancelledEvent } from '../../../domain/events/appointment-cancelled.event';
-import { Inject } from '@nestjs/common';
+import { ForbiddenException, Inject } from '@nestjs/common';
 
 @CommandHandler(CancelAppointmentCommand)
 export class CancelAppointmentHandler
@@ -23,8 +23,18 @@ export class CancelAppointmentHandler
       command.appointmentId,
     );
 
+    this.canCancelAppointment(appointment, command.userId);
+
     appointment.cancel();
     await this.appointmentRepository.delete(appointment.id);
     this.eventBus.publish(new AppointmentCancelledEvent(appointment));
+  }
+
+  private canCancelAppointment(appointment: Appointment, userId: string): void {
+    if ([appointment.patient.id, appointment.doctor.id].includes(userId)) {
+      throw new ForbiddenException(
+        'You are not allowed to cancel this appointment',
+      );
+    }
   }
 }

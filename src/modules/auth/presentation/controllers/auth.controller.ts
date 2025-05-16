@@ -1,23 +1,28 @@
-import { Controller, Post, Body } from '@nestjs/common';
+import { Controller, Post, Body, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { CommandBus } from '@nestjs/cqrs';
 import { Public } from '../../../../shared/decorators/public.decorator';
 import { LoginCommand } from '../../application/commands/impl/login.command';
 import { LoginDto } from '../dtos/login.dto';
+import {
+  CommonSwaggerAPIDecorator,
+  CommonSwaggerControllerDecorator,
+} from 'src/shared/decorators/common-swagger.decorator';
+import { AuthUseCase } from '../../application/use-cases/auth.use-case';
 
-@ApiTags('auth')
+@CommonSwaggerControllerDecorator('auth', false)
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly commandBus: CommandBus) {}
+  constructor(private readonly authUseCase: AuthUseCase) {}
 
   @Post('login')
   @Public()
-  @ApiOperation({ summary: 'User login' })
-  @ApiResponse({ status: 200, description: 'Login successful' })
-  @ApiResponse({ status: 401, description: 'Invalid credentials' })
+  @CommonSwaggerAPIDecorator({
+    operation: 'User login',
+    response: { access_token: String },
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED],
+  })
   login(@Body() loginDto: LoginDto) {
-    return this.commandBus.execute(
-      new LoginCommand(loginDto.email, loginDto.password),
-    );
+    return this.authUseCase.login(loginDto);
   }
 }

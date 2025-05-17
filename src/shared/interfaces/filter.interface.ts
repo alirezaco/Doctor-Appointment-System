@@ -3,6 +3,7 @@ export interface IFilter {
   limit: number;
   search: Search[];
   sort: [string, 'ASC' | 'DESC'];
+  joins?: { type: 'left' | 'inner'; table: string; alias: string }[];
 }
 
 export type Operator =

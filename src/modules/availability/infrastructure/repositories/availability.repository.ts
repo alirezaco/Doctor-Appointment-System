@@ -1,11 +1,7 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, Not } from 'typeorm';
-import { Availability, DayOfWeek } from '../entities/availability.entity';
+import { Repository, Between } from 'typeorm';
+import { Availability } from '../entities/availability.entity';
 import { IAvailabilityRepository } from '../../domain/repositories/availability.repository.interface';
 import { BaseRepository } from 'src/shared/repositories/base.repository';
 
@@ -18,7 +14,7 @@ export class AvailabilityRepository
     @InjectRepository(Availability)
     private readonly repository: Repository<Availability>,
   ) {
-    super(repository, Availability.name);
+    super(repository, Availability.name, ['doctor']);
   }
 
   async findByDoctorId(

@@ -19,7 +19,7 @@ export class AppointmentRepository
     @InjectRepository(Appointment)
     private readonly repository: Repository<Appointment>,
   ) {
-    super(repository, Appointment.name);
+    super(repository, Appointment.name, ['doctor', 'patient']);
   }
 
   async findByDoctorId(doctorId: string): Promise<Appointment[]> {

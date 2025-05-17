@@ -29,6 +29,7 @@ export class BaseRepository<T extends ObjectLiteral> {
   constructor(
     private readonly baseRepository: Repository<T>,
     private readonly alias: string,
+    private readonly relations: string[] = [],
   ) {}
 
   async create(entity: T): Promise<T> {
@@ -38,6 +39,7 @@ export class BaseRepository<T extends ObjectLiteral> {
   async findById(id: string): Promise<T> {
     const entity = await this.baseRepository.findOne({
       where: { id: id as any },
+      relations: this.relations,
     });
     if (!entity) {
       throw new NotFoundException('Entity not found');
@@ -50,6 +52,7 @@ export class BaseRepository<T extends ObjectLiteral> {
     if (filter) {
       query = this.buildQuery(query, filter);
     }
+    query = this.buildJoins(query, filter);
     return query.getMany();
   }
 
@@ -98,6 +101,26 @@ export class BaseRepository<T extends ObjectLiteral> {
       );
     }
 
+    return query;
+  }
+
+  private buildJoins(
+    query: SelectQueryBuilder<T>,
+    filter?: IFilter,
+  ): SelectQueryBuilder<T> {
+    const joinHandler: Record<string, any> = {
+      left: query.leftJoin,
+      inner: query.innerJoin,
+    };
+
+    if (filter?.joins) {
+      for (const join of filter.joins) {
+        joinHandler[join.type](
+          `${join.table} as ${join.alias}`,
+          `${join.alias}.id = ${this.alias}.id`,
+        );
+      }
+    }
     return query;
   }
 }

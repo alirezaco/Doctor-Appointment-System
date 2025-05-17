@@ -1,0 +1,85 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dr-next-app
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=mysql://root:root@db:3306/dr_next
+      - REDIS_URL=redis://redis:6379
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+    depends_on:
+      - db
+      - redis
+      - rabbitmq
+    networks:
+      - dr-next-network
+
+  db:
+    image: mysql:8.0
+    container_name: dr-next-db
+    ports:
+      - '3306:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=dr_next
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - dr-next-network
+
+  test-db:
+    image: mysql:8.0
+    container_name: dr-next-test-db
+    ports:
+      - '3307:3306'
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=dr_next_test
+    volumes:
+      - mysql-test-data:/var/lib/mysql
+    networks:
+      - dr-next-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: dr-next-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis-data:/data
+    networks:
+      - dr-next-network
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: dr-next-rabbitmq
+    ports:
+      - '5672:5672' # AMQP protocol port
+      - '15672:15672' # Management UI port
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    networks:
+      - dr-next-network
+
+volumes:
+  mysql-data:
+  mysql-test-data:
+  redis-data:
+  rabbitmq-data:
+
+networks:
+  dr-next-network:
+    driver: bridge

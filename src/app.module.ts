@@ -31,9 +31,7 @@ import { AppointmentsModule } from './modules/appointments/appointments.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         store: redisStore,
-        host: configService.get('REDIS_HOST'),
-        port: configService.get('REDIS_PORT'),
-        password: configService.get('REDIS_PASSWORD'),
+        url: configService.get('REDIS_URL'),
         ttl: configService.get('REDIS_TTL'),
       }),
       inject: [ConfigService],

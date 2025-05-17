@@ -9,6 +9,7 @@ import { Doctor } from './infrastructure/entities/doctor.entity';
 import { DoctorRepository } from './infrastructure/repositories/doctor.repository';
 import { DOCTOR_REPOSITORY } from './domain/repositories/doctor.repository.interface';
 import { GetAllDoctorsHandler } from './application/queries/handlers/get-all-doctors.handler';
+import { DoctorUseCase } from './application/use-cases/doctor.use-case';
 
 const CommandHandlers = [CreateDoctorHandler, UpdateDoctorHandler];
 const QueryHandlers = [GetDoctorHandler, GetAllDoctorsHandler];
@@ -23,6 +24,7 @@ const QueryHandlers = [GetDoctorHandler, GetAllDoctorsHandler];
     },
     ...CommandHandlers,
     ...QueryHandlers,
+    DoctorUseCase,
   ],
   exports: [DOCTOR_REPOSITORY],
 })

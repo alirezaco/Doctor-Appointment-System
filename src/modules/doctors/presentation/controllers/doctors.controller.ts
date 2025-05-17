@@ -9,27 +9,20 @@ import {
   ParseUUIDPipe,
   HttpStatus,
 } from '@nestjs/common';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { Roles } from 'src/shared/decorators/roles.decorator';
 import { CreateDoctorDto } from '../dtos/create-doctor.dto';
 import { UpdateDoctorDto } from '../dtos/update-doctor.dto';
-import { CreateDoctorCommand } from '../../application/commands/impl/create-doctor.command';
-import { UpdateDoctorCommand } from '../../application/commands/impl/update-doctor.command';
-import { GetDoctorQuery } from '../../application/queries/impl/get-doctor.query';
-import { GetAllDoctorsQuery } from '../../application/queries/impl/get-all-doctors.query';
 import { UserRole } from 'src/shared/enums/user-role.enum';
 import { Doctor } from '../../infrastructure/entities/doctor.entity';
 import { CommonSwaggerAPIDecorator } from 'src/shared/decorators/common-swagger.decorator';
+import { DoctorUseCase } from '../../application/use-cases/doctor.use-case';
 
 @Controller('doctors')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DoctorsController {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly doctorUseCase: DoctorUseCase) {}
 
   @Post()
   @Roles(UserRole.ADMIN)
@@ -45,7 +38,7 @@ export class DoctorsController {
     body: CreateDoctorDto,
   })
   async create(@Body() createDoctorDto: CreateDoctorDto) {
-    return this.commandBus.execute(new CreateDoctorCommand(createDoctorDto));
+    return this.doctorUseCase.create(createDoctorDto);
   }
 
   @Get()
@@ -55,7 +48,7 @@ export class DoctorsController {
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED],
   })
   async findAll() {
-    return this.queryBus.execute(new GetAllDoctorsQuery());
+    return this.doctorUseCase.findAll();
   }
 
   @Get(':id')
@@ -66,7 +59,7 @@ export class DoctorsController {
     params: 'id',
   })
   async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
-    return this.queryBus.execute(new GetDoctorQuery(id));
+    return this.doctorUseCase.findOne(id);
   }
 
   @Put(':id')
@@ -85,11 +78,9 @@ export class DoctorsController {
     body: UpdateDoctorDto,
   })
   async update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,
   ) {
-    return this.commandBus.execute(
-      new UpdateDoctorCommand(id, updateDoctorDto),
-    );
+    return this.doctorUseCase.update(id, updateDoctorDto);
   }
 }

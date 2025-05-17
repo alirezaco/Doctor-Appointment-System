@@ -243,7 +243,7 @@ describe('DoctorsController (e2e)', () => {
     });
 
     it('should return 404 when doctor does not exist', () => {
-      const nonExistentId = '00000000-0000-0000-0000-000000000000';
+      const nonExistentId = '98791902-d8a1-4849-9349-2828d22204ba';
       return request(app.getHttpServer())
         .put(`/doctors/${nonExistentId}`)
         .set(getTestHeaders(adminToken))

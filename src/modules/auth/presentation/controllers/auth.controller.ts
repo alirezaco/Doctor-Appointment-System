@@ -1,8 +1,5 @@
 import { Controller, Post, Body, HttpStatus, HttpCode } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
-import { CommandBus } from '@nestjs/cqrs';
 import { Public } from '../../../../shared/decorators/public.decorator';
-import { LoginCommand } from '../../application/commands/impl/login.command';
 import { LoginDto } from '../dtos/login.dto';
 import {
   CommonSwaggerAPIDecorator,

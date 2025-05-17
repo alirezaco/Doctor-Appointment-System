@@ -17,6 +17,6 @@ export interface IAvailabilityRepository {
     date: Date,
     startTime: string,
     endTime: string,
-  ): Promise<Availability>;
+  ): Promise<void>;
   findAvailableSlots(doctorId: string, date: Date): Promise<Availability[]>;
 }

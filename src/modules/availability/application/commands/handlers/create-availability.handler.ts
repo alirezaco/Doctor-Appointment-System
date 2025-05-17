@@ -31,22 +31,12 @@ export class CreateAvailabilityHandler
     await this.doctorRepository.findById(doctorId);
 
     // Check for overlapping availabilities
-    try {
-      await this.availabilityRepository.findOverlapping(
-        doctorId,
-        createAvailabilityDto.date,
-        createAvailabilityDto.startTime,
-        createAvailabilityDto.endTime,
-      );
-      throw new ConflictException(
-        'Time slot overlaps with existing availability',
-      );
-    } catch (error) {
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      // If NotFoundException is thrown, it means no overlapping availability was found
-    }
+    await this.availabilityRepository.findOverlapping(
+      doctorId,
+      createAvailabilityDto.date,
+      createAvailabilityDto.startTime,
+      createAvailabilityDto.endTime,
+    );
 
     const availability = new Availability();
     Object.assign(availability, {

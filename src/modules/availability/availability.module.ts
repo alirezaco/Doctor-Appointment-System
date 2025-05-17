@@ -8,6 +8,7 @@ import { CreateAvailabilityHandler } from './application/commands/handlers/creat
 import { GetDoctorAvailabilityHandler } from './application/queries/handlers/get-doctor-availability.handler';
 import { DoctorsModule } from '../doctors/doctors.module';
 import { AVAILABILITY_REPOSITORY } from './domain/repositories/availability.repository.interface';
+import { AvailabilityUseCase } from './application/use-cases/availability.use-case';
 
 const CommandHandlers = [CreateAvailabilityHandler];
 const QueryHandlers = [GetDoctorAvailabilityHandler];
@@ -26,6 +27,7 @@ const QueryHandlers = [GetDoctorAvailabilityHandler];
     },
     ...CommandHandlers,
     ...QueryHandlers,
+    AvailabilityUseCase,
   ],
   exports: [AVAILABILITY_REPOSITORY],
 })

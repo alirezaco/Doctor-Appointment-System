@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not } from 'typeorm';
 import { Availability, DayOfWeek } from '../entities/availability.entity';
@@ -61,7 +65,7 @@ export class AvailabilityRepository implements IAvailabilityRepository {
     date: Date,
     startTime: string,
     endTime: string,
-  ): Promise<Availability> {
+  ): Promise<void> {
     const availability = await this.repository.findOne({
       where: {
         doctor: { id: doctorId },
@@ -70,11 +74,11 @@ export class AvailabilityRepository implements IAvailabilityRepository {
       },
     });
 
-    if (!availability) {
-      throw new NotFoundException('No overlapping availability found');
+    if (availability) {
+      throw new ConflictException(
+        'Time slot overlaps with existing availability',
+      );
     }
-
-    return availability;
   }
 
   async findAvailableSlots(

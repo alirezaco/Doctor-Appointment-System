@@ -247,6 +247,13 @@ PORT=3000
 API_PREFIX=api
 ```
 
+### Admin Configuration
+
+```env
+ADMIN_PASSWORD= admin123
+ADMIN_EMAIL= admin@example.com
+```
+
 ## 🐳 Docker Setup
 
 The project uses Docker Compose for development and testing:

@@ -6,6 +6,7 @@ import { rateLimit } from 'express-rate-limit';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { TransformInterceptor } from './shared/Interceptors/transform.interceptor';
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
@@ -25,6 +26,9 @@ async function bootstrap() {
       max: configService.get('RATE_LIMIT_MAX'), // limit each IP to 100 requests per windowMs
     }),
   );
+
+  // Global interceptor
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   // Global validation pipe
   app.useGlobalPipes(

@@ -6,10 +6,13 @@ export class InitialData1709123456790 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Create admin user
-    const adminPassword = await bcrypt.hash('admin123', 10);
+    const adminPassword = await bcrypt.hash(
+      process.env.ADMIN_PASSWORD ?? 'admin123',
+      10,
+    );
     await queryRunner.query(`
       INSERT INTO \`users\` (\`id\`, \`firstName\`, \`lastName\`, \`email\`, \`password\`, \`role\`)
-      VALUES (UUID(), 'Admin', 'User', 'admin@example.com', '${adminPassword}', 'admin')
+      VALUES (UUID(), 'Admin', 'User', '${process.env.ADMIN_EMAIL ?? 'admin@example.com'}', '${adminPassword}', 'admin')
     `);
 
     // Create doctors

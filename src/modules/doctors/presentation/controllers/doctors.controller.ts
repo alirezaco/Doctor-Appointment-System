@@ -16,11 +16,15 @@ import { CreateDoctorDto } from '../dtos/create-doctor.dto';
 import { UpdateDoctorDto } from '../dtos/update-doctor.dto';
 import { UserRole } from 'src/shared/enums/user-role.enum';
 import { Doctor } from '../../infrastructure/entities/doctor.entity';
-import { CommonSwaggerAPIDecorator } from 'src/shared/decorators/common-swagger.decorator';
+import {
+  CommonSwaggerAPIDecorator,
+  CommonSwaggerControllerDecorator,
+} from 'src/shared/decorators/common-swagger.decorator';
 import { DoctorUseCase } from '../../application/use-cases/doctor.use-case';
 
 @Controller('doctors')
 @UseGuards(JwtAuthGuard, RolesGuard)
+@CommonSwaggerControllerDecorator('doctors')
 export class DoctorsController {
   constructor(private readonly doctorUseCase: DoctorUseCase) {}
 

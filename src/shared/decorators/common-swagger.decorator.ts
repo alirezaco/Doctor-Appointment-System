@@ -28,14 +28,14 @@ type optionsApiDecorator = {
   status: HttpStatus[];
   body?: any;
   params?: any;
-  query?: any;
+  query?: Record<string, any>;
 };
 
 const swaggerStatusHandler = {
   [HttpStatus.CREATED]: (options: optionsApiDecorator) => ({
     status: HttpStatus.CREATED,
     description: 'Entity successfully created.',
-    type: options.response,
+    type: { data: options.response },
   }),
   [HttpStatus.BAD_REQUEST]: (_: optionsApiDecorator) => ({
     status: HttpStatus.BAD_REQUEST,
@@ -64,9 +64,11 @@ const swaggerStatusHandler = {
   [HttpStatus.OK]: (options: optionsApiDecorator) => ({
     status: HttpStatus.OK,
     description: 'Entity successfully retrieved.',
-    type: Array.isArray(options.response)
-      ? options.response[0]
-      : options.response,
+    type: {
+      data: Array.isArray(options.response)
+        ? options.response[0]
+        : options.response,
+    },
     isArray: Array.isArray(options.response),
   }),
 };
@@ -74,17 +76,9 @@ const swaggerStatusHandler = {
 export const CommonSwaggerAPIDecorator = (options: optionsApiDecorator) => {
   const decorators = [ApiOperation({ summary: options.operation })];
 
-  if (options.body) {
-    decorators.push(ApiBody({ type: options.body }));
-  }
-
-  if (options.params) {
-    decorators.push(ApiParam({ name: options.params }));
-  }
-
-  if (options.query) {
-    decorators.push(ApiQuery({ type: options.query }));
-  }
+  setBodyIfExists(decorators, options.body);
+  setParamsIfExists(decorators, options.params);
+  setQueryIfExists(decorators, options.query);
 
   for (const status of options.status) {
     decorators.push(ApiResponse(swaggerStatusHandler[status](options)));
@@ -99,4 +93,34 @@ export const CommonSwaggerAPIDecorator = (options: optionsApiDecorator) => {
   );
 
   return applyDecorators(...decorators);
+};
+
+const setBodyIfExists = (decorators: MethodDecorator[], body: any) => {
+  if (body) {
+    decorators.push(ApiBody({ type: body }));
+  }
+};
+
+const setParamsIfExists = (decorators: MethodDecorator[], params: any) => {
+  if (params) {
+    decorators.push(ApiParam({ name: params }));
+  }
+};
+
+const setQueryIfExists = (decorators: MethodDecorator[], query: any) => {
+  if (query) {
+    for (const key of Object.keys(query)) {
+      const value = query[key] as Record<string, any>;
+
+      decorators.push(
+        ApiQuery({
+          name: key,
+          format: value?.type,
+          required: value?.required,
+          description: value?.description,
+          example: value?.example,
+        }),
+      );
+    }
+  }
 };

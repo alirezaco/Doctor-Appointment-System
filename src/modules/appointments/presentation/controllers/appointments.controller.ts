@@ -53,7 +53,13 @@ export class AppointmentsController {
     response: CreateAppointmentDto,
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
     params: 'doctorId',
-    query: 'date',
+    query: {
+      date: {
+        type: 'string',
+        format: 'date',
+        example: '2025-01-01',
+      },
+    },
   })
   async getDoctorAppointments(
     @Param('doctorId', new ParseUUIDPipe({ version: '4' })) doctorId: string,

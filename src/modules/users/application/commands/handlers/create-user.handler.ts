@@ -24,17 +24,7 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
     this.logger.log(`Creating new user with email: ${createUserDto.email}`);
 
     // Check if user with email already exists
-    try {
-      await this.userRepository.findByEmail(createUserDto.email);
-      this.logger.warn(`User with email ${createUserDto.email} already exists`);
-      throw new ConflictException('User with this email already exists');
-    } catch (error) {
-      if (error instanceof ConflictException) {
-        throw error;
-      }
-      // If NotFoundException is thrown, it means no user was found with this email
-      this.logger.debug(`Email ${createUserDto.email} is available`);
-    }
+    await this.checkIfUserExists(createUserDto.email);
 
     // Hash password
     const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
@@ -53,5 +43,18 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
     this.logger.debug('UserCreatedEvent published');
 
     return createdUser;
+  }
+
+  private async checkIfUserExists(email: string): Promise<void> {
+    try {
+      await this.userRepository.findByEmail(email);
+      this.logger.warn(`User with email ${email} already exists`);
+      throw new ConflictException('User with this email already exists');
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      this.logger.debug(`Email ${email} is available`);
+    }
   }
 }

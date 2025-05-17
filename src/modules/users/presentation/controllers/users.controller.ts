@@ -5,9 +5,9 @@ import {
   Body,
   Patch,
   Param,
-  Delete,
   UseGuards,
-  Query,
+  HttpStatus,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -15,12 +15,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { CommandBus, QueryBus } from '@nestjs/cqrs';
 import { UserRole } from 'src/shared/enums/user-role.enum';
-import { CreateUserCommand } from '../../application/commands/impl/create-user.command';
-import { UpdateUserCommand } from '../../application/commands/impl/update-user.command';
-import { GetUserQuery } from '../../application/queries/impl/get-user.query';
-import { GetUsersQuery } from '../../application/queries/impl/get-users.query';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { User } from 'src/modules/users/infrastructure/entities/user.entity';
@@ -28,56 +23,90 @@ import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
 import { Roles } from 'src/shared/decorators/roles.decorator';
 import { GetUser } from 'src/shared/decorators/get-user.decorator';
+import { UserUseCase } from '../../application/use-cases/user.use-case';
+import {
+  CommonSwaggerAPIDecorator,
+  CommonSwaggerControllerDecorator,
+} from 'src/shared/decorators/common-swagger.decorator';
 
-@ApiTags('users')
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
+@CommonSwaggerControllerDecorator('users')
 export class UsersController {
-  constructor(
-    private readonly commandBus: CommandBus,
-    private readonly queryBus: QueryBus,
-  ) {}
+  constructor(private readonly userUseCase: UserUseCase) {}
 
   @Get('me')
-  @ApiOperation({ summary: 'Get the current user' })
-  @ApiResponse({ status: 200, description: 'Return the current user' })
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get the current user',
+    response: User,
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
+  })
   getCurrentUser(@GetUser() user: User): Promise<User> {
-    return this.queryBus.execute(new GetUserQuery(user.id));
+    return this.userUseCase.findOne(user.id);
   }
 
   @Post()
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Create a new user' })
-  @ApiResponse({ status: 201, description: 'User created successfully' })
+  @CommonSwaggerAPIDecorator({
+    operation: 'Create a new user',
+    response: User,
+    status: [
+      HttpStatus.CREATED,
+      HttpStatus.BAD_REQUEST,
+      HttpStatus.FORBIDDEN,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.CONFLICT,
+    ],
+    body: CreateUserDto,
+  })
   create(@Body() createUserDto: CreateUserDto): Promise<User> {
-    return this.commandBus.execute(new CreateUserCommand(createUserDto));
+    return this.userUseCase.create(createUserDto);
   }
 
   @Get()
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get all users' })
-  @ApiResponse({ status: 200, description: 'Return all users' })
-  findAll(@Query('role') role?: string): Promise<User[]> {
-    return this.queryBus.execute(new GetUsersQuery(role));
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get all users',
+    response: [User],
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN],
+  })
+  findAll(): Promise<User[]> {
+    return this.userUseCase.findAll();
   }
 
   @Get(':id')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Get a user by id' })
-  @ApiResponse({ status: 200, description: 'Return the user' })
-  findOne(@Param('id') id: string): Promise<User> {
-    return this.queryBus.execute(new GetUserQuery(id));
+  @CommonSwaggerAPIDecorator({
+    operation: 'Get a user by id',
+    response: User,
+    status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
+    params: 'id',
+  })
+  findOne(
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  ): Promise<User> {
+    return this.userUseCase.findOne(id);
   }
 
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  @ApiOperation({ summary: 'Update a user' })
-  @ApiResponse({ status: 200, description: 'User updated successfully' })
+  @CommonSwaggerAPIDecorator({
+    operation: 'Update a user',
+    response: User,
+    status: [
+      HttpStatus.OK,
+      HttpStatus.UNAUTHORIZED,
+      HttpStatus.NOT_FOUND,
+      HttpStatus.FORBIDDEN,
+      HttpStatus.CONFLICT,
+    ],
+    params: 'id',
+    body: UpdateUserDto,
+  })
   update(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
-    return this.commandBus.execute(new UpdateUserCommand(id, updateUserDto));
+    return this.userUseCase.update(id, updateUserDto);
   }
 }

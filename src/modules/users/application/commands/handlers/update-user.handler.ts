@@ -1,5 +1,10 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
-import { Inject, NotFoundException, Logger } from '@nestjs/common';
+import {
+  Inject,
+  NotFoundException,
+  Logger,
+  ConflictException,
+} from '@nestjs/common';
 import { UpdateUserCommand } from '../impl/update-user.command';
 import {
   IUserRepository,
@@ -24,13 +29,18 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand> {
     this.logger.log(`Updating user with ID: ${id}`);
 
     // Check if user exists
-    const existingUser = await this.userRepository.findById(id);
+    await this.userRepository.findById(id);
     this.logger.debug(`User ${id} found`);
 
     // If password is being updated, hash it
     if (updateUserDto.password) {
       updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
       this.logger.debug('Password hashed successfully');
+    }
+
+    // Check if user with email already exists
+    if (updateUserDto.email) {
+      await this.checkIfUserExists(updateUserDto.email);
     }
 
     const updatedUser = await this.userRepository.update(id, updateUserDto);
@@ -40,5 +50,18 @@ export class UpdateUserHandler implements ICommandHandler<UpdateUserCommand> {
     this.logger.debug('UserUpdatedEvent published');
 
     return updatedUser;
+  }
+
+  private async checkIfUserExists(email: string): Promise<void> {
+    try {
+      await this.userRepository.findByEmail(email);
+      this.logger.warn(`User with email ${email} already exists`);
+      throw new ConflictException('User with this email already exists');
+    } catch (error) {
+      if (error instanceof ConflictException) {
+        throw error;
+      }
+      this.logger.debug(`Email ${email} is available`);
+    }
   }
 }

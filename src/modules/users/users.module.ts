@@ -9,6 +9,7 @@ import { GetUsersHandler } from './application/queries/handlers/get-users.handle
 import { User } from './infrastructure/entities/user.entity';
 import { UserRepository } from './infrastructure/repositories/user.repository';
 import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
+import { UserUseCase } from './application/use-cases/user.use-case';
 
 const CommandHandlers = [CreateUserHandler, UpdateUserHandler];
 const QueryHandlers = [GetUserHandler, GetUsersHandler];
@@ -23,6 +24,7 @@ const QueryHandlers = [GetUserHandler, GetUsersHandler];
     },
     ...CommandHandlers,
     ...QueryHandlers,
+    UserUseCase,
   ],
   exports: [USER_REPOSITORY],
 })

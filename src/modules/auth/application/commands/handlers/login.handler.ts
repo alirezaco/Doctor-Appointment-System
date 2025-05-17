@@ -28,11 +28,8 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
       const user = await this.userRepository.findByEmail(email);
       this.logger.debug(`User found with ID: ${user.id}`);
 
-      const isPasswordValid = await bcrypt.compare(password, user.password);
-      if (!isPasswordValid) {
-        this.logger.warn(`Invalid password for user: ${email}`);
-        throw new UnauthorizedException('Invalid credentials');
-      }
+      // Compare password
+      await this.comparePassword(password, user.password, email);
 
       const payload = { sub: user.id, email: user.email, role: user.role };
       const access_token = this.jwtService.sign(payload);
@@ -45,6 +42,18 @@ export class LoginHandler implements ICommandHandler<LoginCommand> {
       return { access_token };
     } catch (error) {
       this.logger.error(`Login failed for email: ${email}`, error.stack);
+      throw new UnauthorizedException('Invalid credentials');
+    }
+  }
+
+  private async comparePassword(
+    password: string,
+    hashedPassword: string,
+    email: string,
+  ) {
+    const isPasswordValid = await bcrypt.compare(password, hashedPassword);
+    if (!isPasswordValid) {
+      this.logger.warn(`Invalid password for user: ${email}`);
       throw new UnauthorizedException('Invalid credentials');
     }
   }

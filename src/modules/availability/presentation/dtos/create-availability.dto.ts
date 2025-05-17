@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsDateString, IsNotEmpty, IsString, IsUUID } from 'class-validator';
+import {
+  IsDateString,
+  IsNotEmpty,
+  IsString,
+  IsUUID,
+  Matches,
+} from 'class-validator';
 
 export class CreateAvailabilityDto {
   @IsNotEmpty()
@@ -8,10 +14,11 @@ export class CreateAvailabilityDto {
     description: 'The date of the availability',
     example: '2021-01-01',
   })
-  date: Date;
+  date: string;
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
   @ApiProperty({
     description: 'The start time of the availability',
     example: '10:00',
@@ -20,6 +27,7 @@ export class CreateAvailabilityDto {
 
   @IsNotEmpty()
   @IsString()
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/)
   @ApiProperty({
     description: 'The end time of the availability',
     example: '11:00',

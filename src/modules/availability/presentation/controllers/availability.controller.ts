@@ -22,6 +22,8 @@ import {
   CommonSwaggerControllerDecorator,
 } from 'src/shared/decorators/common-swagger.decorator';
 import { Availability } from '../../infrastructure/entities/availability.entity';
+import { ValidateTimePipe } from '../../infrastructure/pipes/validate-time.pipe';
+import { Public } from 'src/shared/decorators/public.decorator';
 
 @Controller('availability')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -42,7 +44,9 @@ export class AvailabilityController {
     ],
     body: CreateAvailabilityDto,
   })
-  async create(@Body() createAvailabilityDto: CreateAvailabilityDto) {
+  async create(
+    @Body(ValidateTimePipe) createAvailabilityDto: CreateAvailabilityDto,
+  ) {
     return this.availabilityUseCase.create(
       createAvailabilityDto.doctorId,
       createAvailabilityDto,
@@ -50,15 +54,11 @@ export class AvailabilityController {
   }
 
   @Get('doctor/:doctorId')
+  @Public()
   @CommonSwaggerAPIDecorator({
     operation: 'Get doctor availability',
     response: [Availability],
-    status: [
-      HttpStatus.OK,
-      HttpStatus.BAD_REQUEST,
-      HttpStatus.UNAUTHORIZED,
-      HttpStatus.FORBIDDEN,
-    ],
+    status: [HttpStatus.OK, HttpStatus.BAD_REQUEST, HttpStatus.FORBIDDEN],
     query: {
       date: {
         type: 'string',
@@ -72,6 +72,9 @@ export class AvailabilityController {
     @Param('doctorId', new ParseUUIDPipe()) doctorId: string,
     @Query('date', new ParseDatePipe()) date: Date,
   ) {
-    return this.availabilityUseCase.getDoctorAvailability(doctorId, date);
+    return this.availabilityUseCase.getDoctorAvailability(
+      doctorId,
+      date?.toISOString().split('T')[0],
+    );
   }
 }

@@ -32,7 +32,10 @@ export class AvailabilityRepository implements IAvailabilityRepository {
     return availability;
   }
 
-  async findByDoctorId(doctorId: string, date: Date): Promise<Availability[]> {
+  async findByDoctorId(
+    doctorId: string,
+    date: string,
+  ): Promise<Availability[]> {
     return this.repository.find({
       where: {
         doctor: { id: doctorId },
@@ -62,7 +65,7 @@ export class AvailabilityRepository implements IAvailabilityRepository {
 
   async findOverlapping(
     doctorId: string,
-    date: Date,
+    date: string,
     startTime: string,
     endTime: string,
   ): Promise<void> {
@@ -83,7 +86,7 @@ export class AvailabilityRepository implements IAvailabilityRepository {
 
   async findAvailableSlots(
     doctorId: string,
-    date: Date,
+    date: string,
   ): Promise<Availability[]> {
     return this.repository.find({
       where: {

@@ -5,7 +5,7 @@ export const AVAILABILITY_REPOSITORY = Symbol('AVAILABILITY_REPOSITORY');
 export interface IAvailabilityRepository {
   create(availability: Availability): Promise<Availability>;
   findById(id: string): Promise<Availability>;
-  findByDoctorId(doctorId: string, date: Date): Promise<Availability[]>;
+  findByDoctorId(doctorId: string, date: string): Promise<Availability[]>;
   findAll(): Promise<Availability[]>;
   update(
     id: string,
@@ -14,9 +14,9 @@ export interface IAvailabilityRepository {
   delete(id: string): Promise<void>;
   findOverlapping(
     doctorId: string,
-    date: Date,
+    date: string,
     startTime: string,
     endTime: string,
   ): Promise<void>;
-  findAvailableSlots(doctorId: string, date: Date): Promise<Availability[]>;
+  findAvailableSlots(doctorId: string, date: string): Promise<Availability[]>;
 }

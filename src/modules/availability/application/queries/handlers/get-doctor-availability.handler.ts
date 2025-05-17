@@ -1,8 +1,15 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { GetDoctorAvailabilityQuery } from '../impl/get-doctor-availability.query';
-import { IAvailabilityRepository } from '../../../domain/repositories/availability.repository.interface';
-import { Logger } from '@nestjs/common';
-import { IDoctorRepository } from 'src/modules/doctors/domain/repositories/doctor.repository.interface';
+import {
+  AVAILABILITY_REPOSITORY,
+  IAvailabilityRepository,
+} from '../../../domain/repositories/availability.repository.interface';
+import { Inject, Logger } from '@nestjs/common';
+import {
+  DOCTOR_REPOSITORY,
+  IDoctorRepository,
+} from 'src/modules/doctors/domain/repositories/doctor.repository.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @QueryHandler(GetDoctorAvailabilityQuery)
 export class GetDoctorAvailabilityHandler
@@ -11,7 +18,9 @@ export class GetDoctorAvailabilityHandler
   private readonly logger = new Logger(GetDoctorAvailabilityHandler.name);
 
   constructor(
+    @Inject(AVAILABILITY_REPOSITORY)
     private readonly availabilityRepository: IAvailabilityRepository,
+    @Inject(DOCTOR_REPOSITORY)
     private readonly doctorRepository: IDoctorRepository,
   ) {}
 
@@ -20,7 +29,7 @@ export class GetDoctorAvailabilityHandler
   ): Promise<{ startTime: string; endTime: string }[]> {
     const { doctorId, date } = query;
     this.logger.log(
-      `Getting doctor availability for doctor ${doctorId} on ${date.toISOString()}`,
+      `Getting doctor availability for doctor ${doctorId} on ${date}`,
     );
 
     // Verify doctor exists

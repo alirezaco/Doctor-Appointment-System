@@ -35,7 +35,7 @@ export class AvailabilityUseCase {
 
   async getDoctorAvailability(
     doctorId: string,
-    date: Date,
+    date: string,
   ): Promise<Availability[]> {
     // Try to get from cache first
     const cacheKey = this.createCacheKey(doctorId, date);
@@ -58,7 +58,7 @@ export class AvailabilityUseCase {
     return res;
   }
 
-  private createCacheKey(doctorId: string, date: Date): string {
-    return `${DOCTOR_AVAILABILITY_CACHE_KEY}:${doctorId}:${date.toISOString().split('T')[0]}`;
+  private createCacheKey(doctorId: string, date: string): string {
+    return `${DOCTOR_AVAILABILITY_CACHE_KEY}:${doctorId}:${date}`;
   }
 }

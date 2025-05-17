@@ -33,7 +33,7 @@ export class Availability extends AggregateRoot {
   doctor: Doctor;
 
   @Column({ type: 'date' })
-  date: Date;
+  date: string;
 
   @Column({ type: 'time' })
   startTime: string;

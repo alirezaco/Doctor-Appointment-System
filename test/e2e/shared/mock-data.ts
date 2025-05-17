@@ -101,3 +101,9 @@ export const mockInvalidLoginData = {
     password: 'password123',
   },
 };
+
+export const mockAvailability = {
+  date: '2025-03-20',
+  startTime: '09:00',
+  endTime: '10:00',
+};

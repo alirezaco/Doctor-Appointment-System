@@ -9,5 +9,7 @@
   "moduleNameMapper": {
     "^src/(.*)$": "<rootDir>/../src/$1"
   },
-  "setupFilesAfterEnv": ["<rootDir>/e2e/shared/test-setup.ts"]
+  "setupFilesAfterEnv": ["<rootDir>/e2e/shared/test-setup.ts"],
+  "globalSetup": "<rootDir>/e2e/shared/global-setup.ts",
+  "globalTeardown": "<rootDir>/e2e/shared/global-teardown.ts"
 }

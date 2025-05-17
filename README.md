@@ -1,98 +1,351 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Dr.Next - Doctor Appointment System
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A modern doctor appointment system built with NestJS, following Domain-Driven Design (DDD) principles.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## 🏗 Project Structure
 
-## Description
-
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
-
-```bash
-$ npm install
+```
+src/
+├── modules/
+│   ├── users/                 # User management module
+│   │   ├── application/      # Application layer
+│   │   │   ├── commands/     # Command implementations and handlers
+│   │   │   ├── queries/      # Query implementations and handlers
+│   │   │   └── use-case/     # Use case orchestrators
+│   │   ├── domain/           # Domain layer
+│   │   │   ├── models/       # Domain entities and aggregates
+│   │   │   ├── repositories/ # Repository interfaces
+│   │   │   ├── services/     # Domain services
+│   │   │   └── events/       # Domain events
+│   │   ├── infrastructure/   # Infrastructure layer
+│   │   │   ├── repositories/ # Repository implementations
+│   │   │   ├── entities/     # TypeORM entities
+│   │   │   └── services/     # External services (Redis, email, etc.)
+│   │   └── presentation/     # Presentation layer
+│   │       ├── controllers/  # API controllers
+│   │       └── dtos/        # Data Transfer Objects
+│   │
+│   ├── doctors/              # Doctor management module
+│   ├── appointments/         # Appointment management module
+│   ├── availability/         # Doctor availability management
+│   ├── notifications/        # Notification system
+│   └── shared/              # Shared utilities and components
+│
+├── database/                # Database configuration and migrations
+│   ├── migrations/         # Database migration files
+│   ├── seeds/             # Database seed files
+│   └── config/            # Database configuration files
+│
+├── shared/                 # Shared resources across modules
+│   ├── decorators/        # Custom decorators
+│   ├── filters/           # Exception filters
+│   ├── guards/            # Authentication guards
+│   ├── interceptors/      # Request/Response interceptors
+│   ├── interfaces/        # Shared interfaces
+│   ├── middleware/        # Custom middleware
+│   ├── pipes/             # Custom pipes
+│   └── utils/             # Utility functions
+│
+└── main.ts                # Application entry point
 ```
 
-## Compile and run the project
+### Module Structure Details
 
-```bash
-# development
-$ npm run start
+Each module follows Clean Architecture principles with CQRS pattern:
 
-# watch mode
-$ npm run start:dev
+1. **Application Layer** (`application/`)
 
-# production mode
-$ npm run start:prod
+   - `commands/`: Command handlers for write operations
+   - `queries/`: Query handlers for read operations
+   - `use-case/`: Business logic orchestration
+
+2. **Domain Layer** (`domain/`)
+
+   - `models/`: Core business entities and aggregates
+   - `repositories/`: Repository interfaces defining data access contracts
+   - `services/`: Pure domain logic services
+   - `events/`: Domain events for event-driven architecture
+
+3. **Infrastructure Layer** (`infrastructure/`)
+
+   - `repositories/`: Concrete implementations of repository interfaces
+   - `entities/`: TypeORM entity definitions
+   - `services/`: External service integrations (Redis, email, queues)
+
+4. **Presentation Layer** (`presentation/`)
+   - `controllers/`: API endpoints and request handling
+   - `dtos/`: Data Transfer Objects for request/response
+
+### Database Directory
+
+The `database/` directory contains all database-related configurations:
+
+1. **Migrations** (`migrations/`)
+
+   - Version-controlled database schema changes
+   - Up and down migrations for rollback support
+   - Timestamp-based naming convention
+
+2. **Seeds** (`seeds/`)
+
+   - Initial data population scripts
+   - Test data generation
+   - Environment-specific seeders
+
+3. **Config** (`config/`)
+   - Database connection configurations
+   - Environment-specific settings
+   - TypeORM configuration files
+
+### Shared Directory
+
+The `shared/` directory contains reusable components:
+
+1. **Decorators** (`decorators/`)
+
+   - Custom method and class decorators
+   - Authentication decorators
+   - Validation decorators
+
+2. **Filters** (`filters/`)
+
+   - Global exception filters
+   - HTTP exception handlers
+   - Custom error responses
+
+3. **Guards** (`guards/`)
+
+   - Authentication guards
+   - Role-based access control
+   - Request validation guards
+
+4. **Interceptors** (`interceptors/`)
+
+   - Request/Response transformation
+   - Logging interceptors
+   - Performance monitoring
+
+5. **Middleware** (`middleware/`)
+
+   - Request processing middleware
+   - Authentication middleware
+   - Logging middleware
+
+6. **Pipes** (`pipes/`)
+
+   - Data transformation pipes
+   - Validation pipes
+   - Custom data processing
+
+7. **Utils** (`utils/`)
+   - Helper functions
+   - Common utilities
+   - Shared constants
+
+## 🗄 Database Schema
+
+### Users Table
+
+- `id`: UUID (Primary Key)
+- `email`: VARCHAR(255) (Unique)
+- `password`: VARCHAR(255) (Hashed)
+- `role`: ENUM('admin', 'doctor', 'patient')
+- `status`: ENUM('active', 'inactive')
+- `createdAt`: TIMESTAMP
+- `updatedAt`: TIMESTAMP
+
+### Doctors Table
+
+- `id`: UUID (Primary Key)
+- `userId`: UUID (Foreign Key -> Users)
+- `specialty`: VARCHAR(100)
+- `createdAt`: TIMESTAMP
+- `updatedAt`: TIMESTAMP
+
+### Availability Table
+
+- `id`: UUID (Primary Key)
+- `doctorId`: UUID (Foreign Key -> Doctors)
+- `date`: DATE (YYYY-MM-DD)
+- `startTime`: TIME
+- `endTime`: TIME
+- `isAvailable`: BOOLEAN
+- `createdAt`: TIMESTAMP
+- `updatedAt`: TIMESTAMP
+
+### Appointments Table
+
+- `id`: UUID (Primary Key)
+- `doctorId`: UUID (Foreign Key -> Doctors)
+- `patientId`: UUID (Foreign Key -> Users)
+- `date`: DATE
+- `startTime`: TIME
+- `endTime`: TIME
+- `status`: ENUM('scheduled', 'completed', 'cancelled', 'no_show')
+- `createdAt`: TIMESTAMP
+- `updatedAt`: TIMESTAMP
+
+## ⏰ Time Slots System
+
+The system manages doctor availability and appointments using a flexible time slot system:
+
+1. **Availability Configuration**
+
+   - Doctors can set their availability for each day of the week
+   - Each availability period has:
+     - Start time
+     - End time
+     - Slot duration (default: 30 minutes)
+
+2. **Slot Generation**
+
+   - System automatically generates available slots based on:
+     - Doctor's availability
+     - Existing appointments
+     - Slot duration
+
+3. **Booking Rules**
+   - Slots can only be booked during doctor's available hours
+   - Minimum 24-hour advance booking required
+   - Maximum 30-day advance booking allowed
+   - No overlapping appointments allowed
+
+## 🔧 Environment Variables
+
+### Database Configuration
+
+```env
+DATABASE_URL=mysql://root:root@db:3306/dr_next
+DATABASE_TEST_URL=mysql://root:root@test-db:3306/dr_next_test
 ```
 
-## Run tests
+### Redis Configuration
 
-```bash
-# unit tests
-$ npm run test
-
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```env
+REDIS_URL=redis://redis:6379
+REDIS_TTL=3600  # Cache TTL in seconds
 ```
 
-## Deployment
+### RabbitMQ Configuration
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```env
+RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### JWT Configuration
 
-## Resources
+```env
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRATION=1d
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### Application Configuration
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+```env
+NODE_ENV=development
+PORT=3000
+API_PREFIX=api
+```
 
-## Support
+## 🐳 Docker Setup
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+The project uses Docker Compose for development and testing:
 
-## Stay in touch
+```bash
+# Start all services
+docker-compose up -d
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+# Start specific services
+docker-compose up app db redis rabbitmq
 
-## License
+# Stop all services
+docker-compose down
+```
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### Available Services
+
+- **App**: NestJS application (Port 3000)
+- **MySQL**: Main database (Port 3306)
+- **MySQL Test**: Test database (Port 3307)
+- **Redis**: Cache server (Port 6379)
+- **RabbitMQ**: Message broker
+  - AMQP: Port 5672
+  - Management UI: Port 15672 (guest/guest)
+
+## 🚀 Development
+
+1. **Install Dependencies**
+
+```bash
+npm install
+```
+
+2. **Run Migrations**
+
+```bash
+npm run migration:run
+```
+
+3. **Start Development Server**
+
+```bash
+npm run start:dev
+```
+
+4. **Run Tests**
+
+```bash
+# Unit tests
+npm run test
+
+# E2E tests
+npm run test:e2e
+```
+
+## 📝 API Documentation
+
+API documentation is available at `/docs` when running the application.
+
+## 🔐 Authentication
+
+The system uses JWT-based authentication with the following roles:
+
+- **Admin**: Full system access
+- **Doctor**: Can manage availability and view their appointments
+- **Patient**: Can book appointments and view their history
+
+## 🔄 Caching Strategy
+
+- Redis is used for caching:
+  - Doctor availability
+  - Frequently accessed data
+- Cache invalidation on data updates
+- Configurable TTL for different types of data
+
+## 📨 Message Queue
+
+RabbitMQ is used for:
+
+- Appointment notifications
+- Email notifications
+- Background tasks
+- System events
+
+## 🧪 Testing
+
+The project includes:
+
+- Unit tests for business logic
+- E2E tests for API endpoints
+- Separate test database for isolation
+
+## 📦 Dependencies
+
+- NestJS
+- TypeORM
+- MySQL
+- Redis
+- RabbitMQ
+- JWT
+- Class Validator
+- Class Transformer

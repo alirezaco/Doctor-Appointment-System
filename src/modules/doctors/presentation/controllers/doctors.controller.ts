@@ -8,6 +8,7 @@ import {
   UseGuards,
   ParseUUIDPipe,
   HttpStatus,
+  Query,
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/shared/guards/jwt-auth.guard';
 import { RolesGuard } from 'src/shared/guards/roles.guard';
@@ -19,8 +20,11 @@ import { Doctor } from '../../infrastructure/entities/doctor.entity';
 import {
   CommonSwaggerAPIDecorator,
   CommonSwaggerControllerDecorator,
+  FindAllQuery,
 } from 'src/shared/decorators/common-swagger.decorator';
 import { DoctorUseCase } from '../../application/use-cases/doctor.use-case';
+import { FilterPipe } from 'src/shared/pipes/filter.pipe';
+import { IFilter } from 'src/shared/interfaces/filter.interface';
 
 @Controller('doctors')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -50,9 +54,10 @@ export class DoctorsController {
     operation: 'Get all doctors',
     response: [CreateDoctorDto],
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED],
+    query: FindAllQuery,
   })
-  async findAll() {
-    return this.doctorUseCase.findAll();
+  async findAll(@Query(FilterPipe) filter: IFilter) {
+    return this.doctorUseCase.findAll(filter);
   }
 
   @Get(':id')

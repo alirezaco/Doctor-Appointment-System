@@ -7,6 +7,7 @@ import { Doctor } from '../../infrastructure/entities/doctor.entity';
 import { GetDoctorQuery } from '../queries/impl/get-doctor.query';
 import { UpdateDoctorDto } from '../../presentation/dtos/update-doctor.dto';
 import { UpdateDoctorCommand } from '../commands/impl/update-doctor.command';
+import { IFilter } from 'src/shared/interfaces/filter.interface';
 @Injectable()
 export class DoctorUseCase {
   constructor(
@@ -20,9 +21,9 @@ export class DoctorUseCase {
     );
   }
 
-  async findAll(): Promise<Doctor[]> {
+  async findAll(filter: IFilter): Promise<Doctor[]> {
     return this.queryBus.execute<GetAllDoctorsQuery, Doctor[]>(
-      new GetAllDoctorsQuery(),
+      new GetAllDoctorsQuery(filter),
     );
   }
 

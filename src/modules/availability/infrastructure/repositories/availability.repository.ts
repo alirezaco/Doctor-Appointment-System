@@ -7,29 +7,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, Not } from 'typeorm';
 import { Availability, DayOfWeek } from '../entities/availability.entity';
 import { IAvailabilityRepository } from '../../domain/repositories/availability.repository.interface';
+import { BaseRepository } from 'src/shared/repositories/base.repository';
 
 @Injectable()
-export class AvailabilityRepository implements IAvailabilityRepository {
+export class AvailabilityRepository
+  extends BaseRepository<Availability>
+  implements IAvailabilityRepository
+{
   constructor(
     @InjectRepository(Availability)
     private readonly repository: Repository<Availability>,
-  ) {}
-
-  async create(availability: Availability): Promise<Availability> {
-    return this.repository.save(availability);
-  }
-
-  async findById(id: string): Promise<Availability> {
-    const availability = await this.repository.findOne({
-      where: { id },
-      relations: ['doctor', 'doctor.user'],
-    });
-
-    if (!availability) {
-      throw new NotFoundException('Availability not found');
-    }
-
-    return availability;
+  ) {
+    super(repository, Availability.name);
   }
 
   async findByDoctorId(
@@ -43,24 +32,6 @@ export class AvailabilityRepository implements IAvailabilityRepository {
       },
       relations: ['doctor'],
     });
-  }
-
-  async findAll(): Promise<Availability[]> {
-    return this.repository.find({
-      relations: ['doctor', 'doctor.user'],
-    });
-  }
-
-  async update(
-    id: string,
-    availability: Partial<Availability>,
-  ): Promise<Availability> {
-    await this.repository.update(id, availability);
-    return this.findById(id);
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
   }
 
   async findOverlapping(

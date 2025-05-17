@@ -8,43 +8,18 @@ import { Between, Repository } from 'typeorm';
 import { Appointment } from '../entities/appointment.entity';
 import { IAppointmentRepository } from '../../domain/repositories/appointment.repository.interface';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
+import { BaseRepository } from 'src/shared/repositories/base.repository';
 
 @Injectable()
-export class AppointmentRepository implements IAppointmentRepository {
+export class AppointmentRepository
+  extends BaseRepository<Appointment>
+  implements IAppointmentRepository
+{
   constructor(
     @InjectRepository(Appointment)
     private readonly repository: Repository<Appointment>,
-  ) {}
-
-  async create(appointment: Appointment): Promise<Appointment> {
-    return this.repository.save(appointment);
-  }
-
-  async findById(id: string): Promise<Appointment> {
-    const appointment = await this.repository.findOne({
-      where: { id },
-      relations: ['doctor', 'patient'],
-    });
-
-    if (!appointment) {
-      throw new NotFoundException('Appointment not found');
-    }
-
-    return appointment;
-  }
-
-  async findAll(): Promise<Appointment[]> {
-    return this.repository.find({
-      relations: ['doctor', 'patient'],
-    });
-  }
-
-  async update(
-    id: string,
-    appointment: Partial<Appointment>,
-  ): Promise<Appointment> {
-    await this.repository.update(id, appointment);
-    return this.findById(id);
+  ) {
+    super(repository, Appointment.name);
   }
 
   async findByDoctorId(doctorId: string): Promise<Appointment[]> {
@@ -65,10 +40,6 @@ export class AppointmentRepository implements IAppointmentRepository {
       },
       relations: ['doctor', 'patient'],
     });
-  }
-
-  async delete(id: string): Promise<void> {
-    await this.repository.delete(id);
   }
 
   async findOverlapping(

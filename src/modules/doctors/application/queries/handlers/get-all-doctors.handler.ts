@@ -16,10 +16,10 @@ export class GetAllDoctorsHandler implements IQueryHandler<GetAllDoctorsQuery> {
     private readonly doctorRepository: IDoctorRepository,
   ) {}
 
-  async execute(): Promise<Doctor[]> {
+  async execute(query: GetAllDoctorsQuery): Promise<Doctor[]> {
     this.logger.log('Getting all doctors');
 
-    const doctors = await this.doctorRepository.findAll();
+    const doctors = await this.doctorRepository.findAll(query.filter);
     this.logger.debug(`Found ${doctors.length} doctors`);
 
     return doctors;

@@ -7,6 +7,7 @@ import { GetUsersQuery } from '../queries/impl/get-users.query';
 import { GetUserQuery } from '../queries/impl/get-user.query';
 import { UpdateUserCommand } from '../commands/impl/update-user.command';
 import { UpdateUserDto } from '../../presentation/dtos/update-user.dto';
+import { IFilter } from 'src/shared/interfaces/filter.interface';
 
 @Injectable()
 export class UserUseCase {
@@ -21,8 +22,10 @@ export class UserUseCase {
     );
   }
 
-  async findAll(): Promise<User[]> {
-    return this.queryBus.execute<GetUsersQuery, User[]>(new GetUsersQuery());
+  async findAll(filter: IFilter): Promise<User[]> {
+    return this.queryBus.execute<GetUsersQuery, User[]>(
+      new GetUsersQuery(filter),
+    );
   }
 
   async findOne(id: string): Promise<User> {

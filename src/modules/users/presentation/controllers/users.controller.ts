@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpStatus,
   ParseUUIDPipe,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -27,7 +28,10 @@ import { UserUseCase } from '../../application/use-cases/user.use-case';
 import {
   CommonSwaggerAPIDecorator,
   CommonSwaggerControllerDecorator,
+  FindAllQuery,
 } from 'src/shared/decorators/common-swagger.decorator';
+import { FilterPipe } from 'src/shared/pipes/filter.pipe';
+import { IFilter } from 'src/shared/interfaces/filter.interface';
 
 @Controller('users')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -69,9 +73,10 @@ export class UsersController {
     operation: 'Get all users',
     response: [User],
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN],
+    query: FindAllQuery,
   })
-  findAll(): Promise<User[]> {
-    return this.userUseCase.findAll();
+  findAll(@Query(FilterPipe) filter: IFilter): Promise<User[]> {
+    return this.userUseCase.findAll(filter);
   }
 
   @Get(':id')

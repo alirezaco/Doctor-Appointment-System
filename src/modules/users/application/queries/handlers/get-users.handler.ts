@@ -18,17 +18,8 @@ export class GetUsersHandler implements IQueryHandler<GetUsersQuery> {
   ) {}
 
   async execute(query: GetUsersQuery): Promise<User[]> {
-    if (query.role) {
-      this.logger.log(`Getting users with role: ${query.role}`);
-      const users = await this.userRepository.findByRole(
-        query.role as UserRole,
-      );
-      this.logger.debug(`Found ${users.length} users with role ${query.role}`);
-      return users;
-    }
-
     this.logger.log('Getting all users');
-    const users = await this.userRepository.findAll();
+    const users = await this.userRepository.findAll(query.filter);
     this.logger.debug(`Found ${users.length} users`);
     return users;
   }

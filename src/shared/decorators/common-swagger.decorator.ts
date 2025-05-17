@@ -73,6 +73,39 @@ const swaggerStatusHandler = {
   }),
 };
 
+export const FindAllQuery = {
+  limit: {
+    type: 'number',
+    required: false,
+    description: 'Limit the number of items to return.',
+    example: 10,
+  },
+  page: {
+    type: 'number',
+    required: false,
+    description: 'Page number to return.',
+    example: 1,
+  },
+  search: {
+    type: 'text',
+    required: false,
+    description: 'Search for a specific item.',
+    example: 'John',
+  },
+  sort: {
+    type: 'string',
+    required: false,
+    description: 'Sort the items by a specific field.',
+    example: 'name',
+  },
+  order: {
+    type: 'string',
+    required: false,
+    description: 'Order the items by a specific field. ASC or DESC.',
+    example: 'ASC',
+  },
+};
+
 export const CommonSwaggerAPIDecorator = (options: optionsApiDecorator) => {
   const decorators = [ApiOperation({ summary: options.operation })];
 

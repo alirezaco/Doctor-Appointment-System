@@ -210,6 +210,118 @@ The system manages doctor availability and appointments using a flexible time sl
    - Maximum 30-day advance booking allowed
    - No overlapping appointments allowed
 
+## 🔍 API Filtering System
+
+The system implements a flexible filtering mechanism for all `findAll` endpoints. Here's how it works:
+
+### Query Parameters
+
+```typescript
+interface FilterInput {
+  limit?: string; // Number of items per page (1-100, default: 10)
+  page?: string; // Page number (default: 1)
+  sort?: string; // Field to sort by (default: 'createdAt')
+  order?: string; // Sort order ('ASC' or 'DESC', default: 'DESC')
+  search?: string; // Search criteria
+}
+```
+
+### Search Format
+
+The `search` parameter uses a special format for complex queries:
+
+```
+field_operatorType=value|field_operatorType=value
+```
+
+#### Operators
+
+- Comparison: `=`, `!=`, `>`, `<`, `>=`, `<=`
+- Text: `LIKE`, `ILIKE`
+- Lists: `IN`, `NOT IN`
+- Null: `IS NULL`, `IS NOT NULL`
+- Range: `BETWEEN`, `NOT BETWEEN`
+- Boolean: `IS TRUE`, `IS FALSE`, `IS NOT TRUE`, `IS NOT FALSE`
+- Unknown: `IS UNKNOWN`, `IS NOT UNKNOWN`
+
+#### Type Suffixes
+
+- `S`: String
+- `N`: Number
+- `B`: Boolean
+- `D`: Date
+
+### Examples
+
+1. **Basic Pagination**
+
+```
+GET /users?limit=20&page=2
+```
+
+2. **Sorting**
+
+```
+GET /users?sort=name&order=ASC
+```
+
+3. **Simple Search**
+
+```
+GET /users?search=name_likes=John
+```
+
+4. **Complex Search**
+
+```
+GET /users?search=age_gtn=18|role_ins=admin,doctor|createdAt_betweend=2024-01-01,2024-12-31
+```
+
+### Implementation Flow
+
+1. **Request Processing**
+
+   - Query parameters are received by the controller
+   - `FilterPipe` transforms raw query parameters into `IFilter` object
+   - Validation is performed on all parameters
+
+2. **Filter Transformation**
+
+   ```typescript
+   interface IFilter {
+     page: number;
+     limit: number;
+     search: Search[];
+     sort: [string, 'ASC' | 'DESC'];
+   }
+   ```
+
+3. **Query Building**
+
+   - Base repository builds TypeORM query
+   - Applies pagination, sorting, and search conditions
+   - Handles complex operators and type conversions
+
+4. **Database Query**
+   - Generated SQL includes all filter conditions
+   - Proper parameter binding for security
+   - Efficient query execution
+
+### Usage in Controllers
+
+```typescript
+@Get()
+findAll(@Query(FilterPipe) filter: IFilter): Promise<Entity[]>
+```
+
+### Security Features
+
+- Input validation for all parameters
+- SQL injection prevention through parameter binding
+- Type checking for all search values
+- Maximum limit enforcement (100 items)
+- Proper error handling for invalid inputs
+
 ## 🔧 Environment Variables
 
 ### Database Configuration

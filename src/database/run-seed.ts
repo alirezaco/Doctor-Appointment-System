@@ -4,7 +4,7 @@ import { join } from 'path';
 import { InitialData1709123456790 } from './seeds/1709123456790-InitialData';
 
 // Load environment variables
-config();
+config({ path: '.env.development' });
 
 const dataSource = new DataSource({
   type: 'mysql',

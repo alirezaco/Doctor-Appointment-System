@@ -3,7 +3,7 @@ import { config } from 'dotenv';
 import { join } from 'path';
 
 // Load environment variables
-config();
+config({ path: '.env.development' });
 
 export default new DataSource({
   type: 'mysql',

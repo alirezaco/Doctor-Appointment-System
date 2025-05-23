@@ -1,5 +1,5 @@
 import { CommandHandler, ICommandHandler, EventBus } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Inject, Logger, NotFoundException } from '@nestjs/common';
 import { CreateAppointmentCommand } from '../impl/create-appointment.command';
 import {
   IAppointmentRepository,
@@ -16,6 +16,12 @@ import { Doctor } from 'src/modules/doctors/infrastructure/entities/doctor.entit
 import { User } from 'src/modules/users/infrastructure/entities/user.entity';
 import { IUserRepository } from 'src/modules/users/domain/repositories/user.repository.interface';
 import { USER_REPOSITORY } from 'src/modules/users/domain/repositories/user.repository.interface';
+import {
+  AVAILABILITY_REPOSITORY,
+  IAvailabilityRepository,
+} from 'src/modules/availability/domain/repositories/availability.repository.interface';
+import { CreateAppointmentDto } from 'src/modules/appointments/presentation/dtos/create-appointment.dto';
+import { Availability } from 'src/modules/availability/infrastructure/entities/availability.entity';
 
 @CommandHandler(CreateAppointmentCommand)
 export class CreateAppointmentHandler
@@ -30,6 +36,8 @@ export class CreateAppointmentHandler
     private readonly doctorRepository: IDoctorRepository,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    @Inject(AVAILABILITY_REPOSITORY)
+    private readonly availabilityRepository: IAvailabilityRepository,
     private readonly eventBus: EventBus,
     private readonly rabbitMQProxy: RabbitMQProxy,
   ) {}
@@ -50,19 +58,27 @@ export class CreateAppointmentHandler
     const patient: User = await this.userRepository.findById(patientId);
     this.logger.debug(`Patient ${patientId} verified`);
 
-    // Check for overlapping appointments
-    await this.appointmentRepository.findOverlapping(
-      createAppointmentDto.doctorId,
-      createAppointmentDto.startTime,
-      createAppointmentDto.endTime,
-    );
-    this.logger.debug('No overlapping appointments found');
+    // Verify doctor is available
+    const availability: Availability =
+      await this.availabilityRepository.findById(
+        createAppointmentDto.availabilityId,
+      );
+
+    // Check availability slot
+    this.checkAvalabilityWithDoctorId(availability, doctor);
+    this.checkValidStatusForAvailibility(availability);
+
+    // Update availability status
+    await this.availabilityRepository.update(availability.id, {
+      isAvailable: false,
+    });
 
     const appointment = new Appointment();
     Object.assign(appointment, {
       ...createAppointmentDto,
       patient,
       doctor,
+      availability,
     });
 
     const createdAppointment =
@@ -78,10 +94,35 @@ export class CreateAppointmentHandler
     await this.rabbitMQProxy.publishAppointmentBooked({
       appointmentId: createdAppointment.id,
       doctorId: createdAppointment.doctor.id,
-      appointmentTime: createdAppointment.startTime,
+      appointmentTime: new Date(
+        `${availability.date}T${availability.startTime}Z`,
+      ),
     });
     this.logger.debug('Appointment booked message published to RabbitMQ');
 
     return createdAppointment;
+  }
+
+  private checkAvalabilityWithDoctorId(
+    availability: Availability,
+    doctor: Doctor,
+  ) {
+    if (availability.doctor?.id !== doctor.id) {
+      this.logger.error(
+        `Doctor ${doctor.id} does not matched with availability ${availability.id}`,
+      );
+      throw new NotFoundException('Not Found Availibility slot!!!');
+    }
+    this.logger.debug(
+      `Doctor ${doctor.id} does matched with availability ${availability.id}`,
+    );
+  }
+
+  private checkValidStatusForAvailibility(availability: Availability) {
+    if (availability.isAvailable === false) {
+      this.logger.error(`Availibility ${availability.id} is not available!`);
+      throw new NotFoundException('Availibilty slot not found!');
+    }
+    this.logger.debug(`availibilty ${availability.id} is available!`);
   }
 }

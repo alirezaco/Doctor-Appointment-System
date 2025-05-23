@@ -56,8 +56,7 @@ export class CreateInitialTables1709123456789 implements MigrationInterface {
         \`id\` varchar(36) NOT NULL,
         \`doctorId\` varchar(36) NOT NULL,
         \`patientId\` varchar(36) NOT NULL,
-        \`startTime\` timestamp NOT NULL,
-        \`endTime\` timestamp NOT NULL,
+        \`availabilityId\` varchar(36) NOT NULL,
         \`status\` enum('scheduled', 'cancelled', 'completed') NOT NULL DEFAULT 'scheduled',
         \`notes\` text,
         \`createdAt\` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -65,8 +64,10 @@ export class CreateInitialTables1709123456789 implements MigrationInterface {
         PRIMARY KEY (\`id\`),
         KEY \`FK_appointments_doctor\` (\`doctorId\`),
         KEY \`FK_appointments_patient\` (\`patientId\`),
+        KEY \`FK_appointments_availability\` (\`availabilityId\`),
         CONSTRAINT \`FK_appointments_doctor\` FOREIGN KEY (\`doctorId\`) REFERENCES \`doctors\` (\`id\`) ON DELETE CASCADE,
-        CONSTRAINT \`FK_appointments_patient\` FOREIGN KEY (\`patientId\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE
+        CONSTRAINT \`FK_appointments_patient\` FOREIGN KEY (\`patientId\`) REFERENCES \`users\` (\`id\`) ON DELETE CASCADE,
+        CONSTRAINT \`FK_appointments_availability\` FOREIGN KEY (\`availabilityId\`) REFERENCES \`availability\` (\`id\`) ON DELETE CASCADE
       ) ENGINE=InnoDB
     `);
   }

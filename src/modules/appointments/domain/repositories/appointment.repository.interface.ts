@@ -10,9 +10,4 @@ export interface IAppointmentRepository {
   delete(id: string): Promise<void>;
   findByDoctorId(doctorId: string): Promise<Appointment[]>;
   findByPatientId(patientId: string): Promise<Appointment[]>;
-  findOverlapping(
-    doctorId: string,
-    startTime: Date,
-    endTime: Date,
-  ): Promise<null>;
 }

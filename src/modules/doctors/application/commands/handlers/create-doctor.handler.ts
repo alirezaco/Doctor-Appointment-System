@@ -90,12 +90,22 @@ export class CreateDoctorHandler
   }
 
   private async checkExistDoctor(userId: string): Promise<void> {
-    const doctor: Doctor = await this.doctorRepository.findById(userId);
+    const doctors: Doctor[] = await this.doctorRepository.findAll({
+      limit: 1,
+      page: 1,
+      search: [
+        {
+          field: 'id',
+          operator: '=',
+          value: userId,
+        },
+      ],
+    });
 
-    if (doctor) {
-      this.logger.error(`User with ID ${doctor.id} is already a doctor`);
+    if (doctors.length) {
+      this.logger.error(`User with ID ${doctors[0].id} is already a doctor`);
       throw new BadRequestException(
-        `User with ID ${doctor.id} is already a doctor`,
+        `User with ID ${doctors[0].id} is already a doctor`,
       );
     }
     this.logger.debug(`User with ID ${userId} is not a doctor`);

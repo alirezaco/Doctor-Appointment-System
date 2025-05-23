@@ -111,10 +111,6 @@ export class InitialData1709123456790 implements MigrationInterface {
     }
 
     // Create some sample appointments for tomorrow
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
     const patientIds = await queryRunner.query(`
       SELECT \`id\` FROM \`users\` WHERE \`role\` = 'patient' LIMIT 3
     `);
@@ -122,19 +118,21 @@ export class InitialData1709123456790 implements MigrationInterface {
     for (let i = 0; i < 3; i++) {
       const doctor = doctorIds[i];
       const patient = patientIds[i];
+      const availabilityIds = await queryRunner.query(`
+        SELECT \`id\` FROM \`availability\`
+        WHERE \`doctorId\` = '${doctor.id}'`);
 
       await queryRunner.query(`
         INSERT INTO \`appointments\` (
-          \`id\`, \`doctorId\`, \`patientId\`, \`startTime\`, \`endTime\`, \`status\`, \`notes\`
+          \`id\`, \`doctorId\`, \`patientId\`, \`status\`, \`notes\`, \`availabilityId\`
         )
         VALUES (
           UUID(),
           '${doctor.id}',
           '${patient.id}',
-          '${tomorrowStr} 09:00:00',
-          '${tomorrowStr} 09:30:00',
           'scheduled',
-          'Regular checkup'
+          'Regular checkup',
+          '${availabilityIds[0]?.id}'
         )
       `);
     }

@@ -24,14 +24,14 @@ describe('AppointmentsController (e2e)', () => {
   let app: INestApplication;
   let jwtService: JwtService;
   let dataSource: DataSource;
-  let adminToken: string;
   let userToken: string;
-  let doctorToken: string;
   let doctorRepository: Repository<Doctor>;
   let appointmentRepository: Repository<Appointment>;
   let userRepository: Repository<User>;
   let createdDoctorId: string;
   let createdUserId: string;
+  let adminToken: string;
+  let availabilityId: string;
 
   beforeAll(async () => {
     const { app: testApp, dataSource: testDataSource } =
@@ -41,7 +41,6 @@ describe('AppointmentsController (e2e)', () => {
     jwtService = app.get(JwtService);
 
     adminToken = createAuthToken(jwtService, UserRole.ADMIN);
-    doctorToken = createAuthToken(jwtService, UserRole.DOCTOR);
 
     doctorRepository = dataSource.getRepository(Doctor);
     appointmentRepository = dataSource.getRepository(Appointment);
@@ -57,19 +56,27 @@ describe('AppointmentsController (e2e)', () => {
     // Create a user for testing
     const userResponse = await findOrCreateUser(
       userRepository,
-      'patient@test.com',
+      'patientAvailability@test.com',
       UserRole.PATIENT,
     );
     createdUserId = userResponse.id;
     userToken = createAuthToken(jwtService, UserRole.PATIENT, createdUserId);
+
+    // Create availability for the doctor
+    const availability = await request(app.getHttpServer())
+      .post('/availability')
+      .set(getTestHeaders(adminToken))
+      .send({
+        doctorId: createdDoctorId,
+        date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow's date
+        startTime: '22:00',
+        endTime: '22:30',
+      });
+
+    availabilityId = availability.body.id;
   });
 
   afterAll(async () => {
-    // await cleanupDatabase(dataSource, Appointment.name);
-    // await cleanupDatabase(dataSource, Doctor.name);
-    // await cleanupDatabase(dataSource, User.name);
-    await userRepository.delete(createdUserId);
-    await doctorRepository.delete(createdDoctorId);
     await app.close();
   });
 
@@ -78,6 +85,7 @@ describe('AppointmentsController (e2e)', () => {
       const appointmentData = {
         ...mockAppointment,
         doctorId: createdDoctorId,
+        availabilityId,
       };
 
       return request(app.getHttpServer())
@@ -129,31 +137,6 @@ describe('AppointmentsController (e2e)', () => {
         .send({
           ...mockAppointment,
           doctorId: nonExistentDoctorId,
-          patientId: createdUserId,
-        })
-        .expect(400);
-    });
-
-    it('should return 400 when start time is in the past', () => {
-      return request(app.getHttpServer())
-        .post('/appointments')
-        .set(getTestHeaders(userToken))
-        .send({
-          ...mockInvalidAppointmentData.pastStartTime,
-          doctorId: createdDoctorId,
-          patientId: createdUserId,
-        })
-        .expect(400);
-    });
-
-    it('should return 400 when end time is before start time', () => {
-      return request(app.getHttpServer())
-        .post('/appointments')
-        .set(getTestHeaders(userToken))
-        .send({
-          ...mockInvalidAppointmentData.endTimeBeforeStartTime,
-          doctorId: createdDoctorId,
-          patientId: createdUserId,
         })
         .expect(400);
     });
@@ -165,7 +148,6 @@ describe('AppointmentsController (e2e)', () => {
         .send({
           ...mockInvalidAppointmentData.longNotes,
           doctorId: createdDoctorId,
-          patientId: createdUserId,
         })
         .expect(400);
     });
@@ -256,12 +238,21 @@ describe('AppointmentsController (e2e)', () => {
     let createdAppointmentId: string;
 
     beforeAll(async () => {
+      const availability = await request(app.getHttpServer())
+        .post('/availability')
+        .set(getTestHeaders(adminToken))
+        .send({
+          doctorId: createdDoctorId,
+          date: new Date(Date.now() + 86400000).toISOString().split('T')[0], // Tomorrow's date
+          startTime: '23:00',
+          endTime: '23:30',
+        });
+
       // Create an appointment for testing
       const appointmentData = {
-        startTime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(), // Tomorrow
-        endTime: new Date(Date.now() + 49 * 60 * 60 * 1000).toISOString(), // Tomorrow + 1 hour
         notes: 'Cancel me',
         doctorId: createdDoctorId,
+        availabilityId: availability.body.id,
       };
 
       const response = await request(app.getHttpServer())

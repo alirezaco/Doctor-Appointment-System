@@ -19,7 +19,7 @@ export class AppointmentRepository
     @InjectRepository(Appointment)
     private readonly repository: Repository<Appointment>,
   ) {
-    super(repository, Appointment.name, ['doctor', 'patient']);
+    super(repository, Appointment.name, ['doctor', 'patient', 'availability']);
   }
 
   async findByDoctorId(doctorId: string): Promise<Appointment[]> {
@@ -40,25 +40,5 @@ export class AppointmentRepository
       },
       relations: ['doctor', 'patient'],
     });
-  }
-
-  async findOverlapping(
-    doctorId: string,
-    startTime: Date,
-    endTime: Date,
-  ): Promise<null> {
-    const appointment = await this.repository.findOne({
-      where: {
-        doctor: { id: doctorId },
-        startTime: Between(startTime, endTime),
-        status: AppointmentStatus.SCHEDULED,
-      },
-    });
-
-    if (appointment) {
-      throw new ConflictException('Time slot is already booked');
-    }
-
-    return null;
   }
 }

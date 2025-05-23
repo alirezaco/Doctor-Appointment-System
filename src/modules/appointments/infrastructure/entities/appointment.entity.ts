@@ -6,6 +6,7 @@ import {
   UpdateDateColumn,
   ManyToOne,
   JoinColumn,
+  OneToOne,
 } from 'typeorm';
 import { AggregateRoot } from '@nestjs/cqrs';
 import { User } from 'src/modules/users/infrastructure/entities/user.entity';
@@ -14,6 +15,7 @@ import { AppointmentCancelledEvent } from '../../domain/events/appointment-cance
 import { Doctor } from 'src/modules/doctors/infrastructure/entities/doctor.entity';
 import { AppointmentStatus } from '../enums/appointment-status.enum';
 import { ApiProperty } from '@nestjs/swagger';
+import { Availability } from 'src/modules/availability/infrastructure/entities/availability.entity';
 
 @Entity('appointments')
 export class Appointment extends AggregateRoot {
@@ -36,23 +38,17 @@ export class Appointment extends AggregateRoot {
   @JoinColumn()
   @ApiProperty({
     description: 'The patient associated with the appointment',
-    example: { id: '123e4567-e89b-12d3-a456-426614174000', name: 'John Doe' },
+    example: { id: '123e4567-e89b-12d3-a456-426614174000' },
   })
   patient: User;
 
-  @Column({ type: 'timestamp' })
+  @OneToOne(() => Availability)
+  @JoinColumn()
   @ApiProperty({
-    description: 'The start time of the appointment',
-    example: '2025-01-01T00:00:00.000Z',
+    description: 'The availability slot associated with the appointment',
+    example: { id: '123e4567-e89b-12d3-a456-426614174000' },
   })
-  startTime: Date;
-
-  @Column({ type: 'timestamp' })
-  @ApiProperty({
-    description: 'The end time of the appointment',
-    example: '2025-01-01T00:00:00.000Z',
-  })
-  endTime: Date;
+  availability: Availability;
 
   @Column({
     type: 'enum',

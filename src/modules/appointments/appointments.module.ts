@@ -10,12 +10,18 @@ import { GetDoctorAppointmentsHandler } from './application/queries/handlers/get
 import { DoctorsModule } from '../doctors/doctors.module';
 import { CancelAppointmentHandler } from './application/commands/handlers/cancel-appointment.handler';
 import { AppointmentUseCase } from './application/use-cases/appointment.use-cae';
+import { AvailabilityModule } from '../availability/availability.module';
 
 const CommandHandlers = [CreateAppointmentHandler, CancelAppointmentHandler];
 const QueryHandlers = [GetDoctorAppointmentsHandler];
 
 @Module({
-  imports: [CqrsModule, TypeOrmModule.forFeature([Appointment]), DoctorsModule],
+  imports: [
+    CqrsModule,
+    TypeOrmModule.forFeature([Appointment]),
+    DoctorsModule,
+    AvailabilityModule,
+  ],
   controllers: [AppointmentsController],
   providers: [
     {

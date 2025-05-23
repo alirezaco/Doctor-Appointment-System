@@ -7,6 +7,7 @@ import {
   MinLength,
   IsAlpha,
   Matches,
+  IsUUID,
 } from 'class-validator';
 
 export class CreateDoctorDto {
@@ -40,4 +41,12 @@ export class CreateDoctorDto {
     example: 'Dr. John Doe is a cardiologist with 15 years of experience',
   })
   bio?: string;
+
+  @IsNotEmpty()
+  @IsUUID()
+  @ApiProperty({
+    description: 'The ID of the user associated with the doctor',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+  })
+  userId: string;
 }

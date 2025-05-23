@@ -2,13 +2,18 @@ import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { UserRole } from '../../src/shared/enums/user-role.enum';
-import { createTestingApp, cleanupDatabase } from './shared/test-setup';
-import { createAuthToken, getTestHeaders } from './shared/test-utils';
+import { createTestingApp } from './shared/test-setup';
+import {
+  createAuthToken,
+  createNewDoctor,
+  createNewUser,
+  findOrCreateUser,
+  getTestHeaders,
+} from './shared/test-utils';
 import { mockDoctor, mockInvalidDoctorData } from './shared/mock-data';
 import { DataSource, Repository } from 'typeorm';
 import { Doctor } from 'src/modules/doctors/infrastructure/entities/doctor.entity';
-import { Availability } from 'src/modules/availability/infrastructure/entities/availability.entity';
-import { Appointment } from 'src/modules/appointments/infrastructure/entities/appointment.entity';
+import { User } from 'src/modules/users/infrastructure/entities/user.entity';
 
 describe('DoctorsController (e2e)', () => {
   let app: INestApplication;
@@ -17,6 +22,7 @@ describe('DoctorsController (e2e)', () => {
   let adminToken: string;
   let userToken: string;
   let doctorRepository: Repository<Doctor>;
+  let userRepository: Repository<User>;
 
   beforeAll(async () => {
     const { app: testApp, dataSource: testDataSource } =
@@ -28,6 +34,7 @@ describe('DoctorsController (e2e)', () => {
     adminToken = createAuthToken(jwtService, UserRole.ADMIN);
     userToken = createAuthToken(jwtService, UserRole.PATIENT);
     doctorRepository = dataSource.getRepository(Doctor);
+    userRepository = dataSource.getRepository(User);
   });
 
   afterEach(async () => {
@@ -41,11 +48,16 @@ describe('DoctorsController (e2e)', () => {
   });
 
   describe('POST /doctors', () => {
-    it('should create a new doctor when valid data is provided by admin', () => {
+    it('should create a new doctor when valid data is provided by admin', async () => {
+      const newUser = await createNewUser(userRepository);
+
       return request(app.getHttpServer())
         .post('/doctors')
         .set(getTestHeaders(adminToken))
-        .send(mockDoctor)
+        .send({
+          ...mockDoctor,
+          userId: newUser.id,
+        })
         .expect(201)
         .expect(async (res) => {
           expect(res.body).toHaveProperty('id');
@@ -153,12 +165,17 @@ describe('DoctorsController (e2e)', () => {
         .expect(400);
     });
 
-    it('should create doctor without bio when bio is not provided', () => {
+    it('should create doctor without bio when bio is not provided', async () => {
+      const newUser = await createNewUser(userRepository);
+
       const { bio, ...dataWithoutBio } = mockDoctor;
       return request(app.getHttpServer())
         .post('/doctors')
         .set(getTestHeaders(adminToken))
-        .send(dataWithoutBio)
+        .send({
+          ...dataWithoutBio,
+          userId: newUser.id,
+        })
         .expect(201)
         .expect(async (res) => {
           expect(res.body).toHaveProperty('id');
@@ -201,11 +218,8 @@ describe('DoctorsController (e2e)', () => {
 
     beforeAll(async () => {
       // Create a doctor to update
-      const response = await request(app.getHttpServer())
-        .post('/doctors')
-        .set(getTestHeaders(adminToken))
-        .send(mockDoctor);
-      createdDoctorId = response.body.id;
+      const doctor = await createNewDoctor(userRepository, doctorRepository);
+      createdDoctorId = doctor.id;
     });
 
     afterAll(async () => {
@@ -353,18 +367,9 @@ describe('DoctorsController (e2e)', () => {
 
     beforeAll(async () => {
       // Create multiple doctors for testing
-      const doctors = [
-        mockDoctor,
-        { ...mockDoctor, name: 'Dr. Jane Smith', specialty: 'Neurology' },
-        { ...mockDoctor, name: 'Dr. Mike Johnson', specialty: 'Pediatrics' },
-      ];
-
-      for (const doctor of doctors) {
-        const response = await request(app.getHttpServer())
-          .post('/doctors')
-          .set(getTestHeaders(adminToken))
-          .send(doctor);
-        createdDoctorIds.push(response.body.id);
+      for (let i = 0; i < 5; i++) {
+        const doctor = await createNewDoctor(userRepository, doctorRepository);
+        createdDoctorIds.push(doctor.id);
       }
     });
 
@@ -433,14 +438,13 @@ describe('DoctorsController (e2e)', () => {
 
   describe('GET /doctors/:id', () => {
     let createdDoctorId: string;
+    let createdDoctor: Doctor;
 
     beforeAll(async () => {
       // Create a doctor to fetch
-      const response = await request(app.getHttpServer())
-        .post('/doctors')
-        .set(getTestHeaders(adminToken))
-        .send(mockDoctor);
-      createdDoctorId = response.body.id;
+      const doctor = await createNewDoctor(userRepository, doctorRepository);
+      createdDoctorId = doctor.id;
+      createdDoctor = doctor;
     });
 
     afterAll(async () => {
@@ -456,9 +460,9 @@ describe('DoctorsController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('id', createdDoctorId);
-          expect(res.body).toHaveProperty('name', mockDoctor.name);
-          expect(res.body).toHaveProperty('specialty', mockDoctor.specialty);
-          expect(res.body).toHaveProperty('bio', mockDoctor.bio);
+          expect(res.body).toHaveProperty('name', createdDoctor.name);
+          expect(res.body).toHaveProperty('specialty', createdDoctor.specialty);
+          expect(res.body).toHaveProperty('bio', createdDoctor.bio);
         });
     });
 
@@ -469,9 +473,9 @@ describe('DoctorsController (e2e)', () => {
         .expect(200)
         .expect((res) => {
           expect(res.body).toHaveProperty('id', createdDoctorId);
-          expect(res.body).toHaveProperty('name', mockDoctor.name);
-          expect(res.body).toHaveProperty('specialty', mockDoctor.specialty);
-          expect(res.body).toHaveProperty('bio', mockDoctor.bio);
+          expect(res.body).toHaveProperty('name', createdDoctor.name);
+          expect(res.body).toHaveProperty('specialty', createdDoctor.specialty);
+          expect(res.body).toHaveProperty('bio', createdDoctor.bio);
         });
     });
 

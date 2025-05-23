@@ -5,6 +5,7 @@ import { UserRole } from '../../src/shared/enums/user-role.enum';
 import { createTestingApp } from './shared/test-setup';
 import {
   createAuthToken,
+  createNewDoctor,
   findOrCreateUser,
   getTestHeaders,
 } from './shared/test-utils';
@@ -12,7 +13,7 @@ import { DataSource, Repository } from 'typeorm';
 import { User } from 'src/modules/users/infrastructure/entities/user.entity';
 import { Doctor } from 'src/modules/doctors/infrastructure/entities/doctor.entity';
 import { Availability } from 'src/modules/availability/infrastructure/entities/availability.entity';
-import { mockAvailability, mockUser } from './shared/mock-data';
+import { mockAvailability } from './shared/mock-data';
 
 describe('AvailabilityController (e2e)', () => {
   let app: INestApplication;
@@ -45,21 +46,11 @@ describe('AvailabilityController (e2e)', () => {
     adminToken = createAuthToken(jwtService, UserRole.ADMIN, createdUserId);
 
     // Create a test doctor
-    const doctor = await doctorRepository.save({
-      name: 'Test Doctor',
-      specialty: 'General Medicine',
-      bio: 'Test doctor bio',
-    });
+    const doctor = await createNewDoctor(userRepository, doctorRepository);
     createdDoctorId = doctor.id;
   });
 
   afterAll(async () => {
-    if (createdUserId) {
-      await userRepository.delete(createdUserId);
-    }
-    if (createdDoctorId) {
-      await doctorRepository.delete(createdDoctorId);
-    }
     await app.close();
   });
 
@@ -84,8 +75,6 @@ describe('AvailabilityController (e2e)', () => {
             where: { id: res.body.id },
           });
           expect(availability).not.toBeNull();
-
-          await availabilityRepository.delete(res.body.id);
         });
     });
 
@@ -162,10 +151,6 @@ describe('AvailabilityController (e2e)', () => {
         });
 
       availabilityId = res.body.id;
-    });
-
-    afterAll(async () => {
-      await availabilityRepository.delete(availabilityId);
     });
 
     it('should return doctor availability for a specific date', async () => {

@@ -21,7 +21,14 @@ async function runSeed() {
     console.log('Running seed...');
 
     const seed = new InitialData1709123456790();
-    await seed.up(dataSource.createQueryRunner());
+
+    if (process.argv[2] === 'up') {
+      await seed.up(dataSource.createQueryRunner());
+    } else if (process.argv[2] === 'down') {
+      await seed.down(dataSource.createQueryRunner());
+    } else {
+      throw new Error('Invalid argument. Use "up" or "down".');
+    }
 
     console.log('Seed completed successfully');
     process.exit(0);

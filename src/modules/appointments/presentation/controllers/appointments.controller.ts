@@ -62,7 +62,7 @@ export class AppointmentsController {
     },
   })
   async getDoctorAppointments(
-    @Param('doctorId', new ParseUUIDPipe({ version: '4' })) doctorId: string,
+    @Param('doctorId', new ParseUUIDPipe()) doctorId: string,
     @Query('date', new ParseDatePipe()) date: Date,
   ) {
     return this.appointmentUseCase.getDoctorAppointments(doctorId, date);
@@ -76,7 +76,7 @@ export class AppointmentsController {
     params: 'id',
   })
   async cancel(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @GetUser() user: IUserToken,
   ) {
     return this.appointmentUseCase.cancel(id, user.id);

@@ -1,3 +1,4 @@
+import { IFilter } from 'src/shared/interfaces/filter.interface';
 import { Availability } from '../../infrastructure/entities/availability.entity';
 
 export const AVAILABILITY_REPOSITORY = Symbol('AVAILABILITY_REPOSITORY');
@@ -6,7 +7,7 @@ export interface IAvailabilityRepository {
   create(availability: Availability): Promise<Availability>;
   findById(id: string): Promise<Availability>;
   findByDoctorId(doctorId: string, date: string): Promise<Availability[]>;
-  findAll(): Promise<Availability[]>;
+  findAll(filter?: IFilter): Promise<Availability[]>;
   update(
     id: string,
     availability: Partial<Availability>,

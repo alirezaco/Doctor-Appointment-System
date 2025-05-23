@@ -87,9 +87,7 @@ export class UsersController {
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
     params: 'id',
   })
-  findOne(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-  ): Promise<User> {
+  findOne(@Param('id', new ParseUUIDPipe()) id: string): Promise<User> {
     return this.userUseCase.findOne(id);
   }
 
@@ -109,7 +107,7 @@ export class UsersController {
     body: UpdateUserDto,
   })
   update(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<User> {
     return this.userUseCase.update(id, updateUserDto);

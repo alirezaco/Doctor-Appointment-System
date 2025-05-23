@@ -67,7 +67,7 @@ export class DoctorsController {
     status: [HttpStatus.OK, HttpStatus.UNAUTHORIZED, HttpStatus.NOT_FOUND],
     params: 'id',
   })
-  async findOne(@Param('id', new ParseUUIDPipe({ version: '4' })) id: string) {
+  async findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.doctorUseCase.findOne(id);
   }
 
@@ -87,7 +87,7 @@ export class DoctorsController {
     body: UpdateDoctorDto,
   })
   async update(
-    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+    @Param('id', new ParseUUIDPipe()) id: string,
     @Body() updateDoctorDto: UpdateDoctorDto,
   ) {
     return this.doctorUseCase.update(id, updateDoctorDto);

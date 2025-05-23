@@ -21,23 +21,41 @@ export class InitialData1709123456790 implements MigrationInterface {
         name: 'Dr. John Smith',
         specialty: 'Cardiology',
         bio: 'Experienced cardiologist with over 15 years of practice.',
+        firstName: 'John',
+        lastName: 'Smith',
+        email: 'johnsmith@test.com',
       },
       {
         name: 'Dr. Sarah Johnson',
         specialty: 'Pediatrics',
         bio: 'Pediatrician specializing in child development and care.',
+        firstName: 'Sarah',
+        lastName: 'Johnson',
+        email: 'sarahjohnson@test.com',
       },
       {
         name: 'Dr. Michael Brown',
         specialty: 'Orthopedics',
         bio: 'Orthopedic surgeon with expertise in sports injuries.',
+        firstName: 'Michael',
+        lastName: 'Orthopedics',
+        email: 'michaelorthopedics@test.com',
       },
     ];
 
+    const doctorPassword = await bcrypt.hash('doctor123', 10);
     for (const doctor of doctors) {
       await queryRunner.query(`
+        INSERT INTO \`users\` (\`id\`, \`firstName\`, \`lastName\`, \`email\`, \`password\`, \`role\`)
+        VALUES (UUID(), '${doctor.firstName}', '${doctor.lastName}', '${doctor.email}', '${doctorPassword}', 'doctor')
+      `);
+      const users = await queryRunner.query(`
+        SELECT \`id\` FROM \`users\` WHERE \`email\` = '${doctor.email}'
+      `);
+
+      await queryRunner.query(`
         INSERT INTO \`doctors\` (\`id\`, \`name\`, \`specialty\`, \`bio\`)
-        VALUES (UUID(), '${doctor.name}', '${doctor.specialty}', '${doctor.bio}')
+        VALUES ('${users[0]?.id}', '${doctor.name}', '${doctor.specialty}', '${doctor.bio}')
       `);
     }
 

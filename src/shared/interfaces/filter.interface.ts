@@ -2,7 +2,7 @@ export interface IFilter {
   page: number;
   limit: number;
   search: Search[];
-  sort: [string, 'ASC' | 'DESC'];
+  sort?: [string, 'ASC' | 'DESC'];
   joins?: { type: 'left' | 'inner'; table: string; alias: string }[];
 }
 
@@ -32,6 +32,6 @@ export type Operator =
 
 export type Search = {
   field: string;
-  value: string;
+  value: any;
   operator: Operator;
 };

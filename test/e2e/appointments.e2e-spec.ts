@@ -5,6 +5,7 @@ import { UserRole } from '../../src/shared/enums/user-role.enum';
 import { createTestingApp, cleanupDatabase } from './shared/test-setup';
 import {
   createAuthToken,
+  createNewDoctor,
   findOrCreateUser,
   getTestHeaders,
 } from './shared/test-utils';
@@ -47,11 +48,11 @@ describe('AppointmentsController (e2e)', () => {
     userRepository = dataSource.getRepository(User);
 
     // Create a doctor for testing
-    const doctorResponse = await request(app.getHttpServer())
-      .post('/doctors')
-      .set(getTestHeaders(adminToken))
-      .send(mockDoctor);
-    createdDoctorId = doctorResponse.body.id;
+    const doctorResponse = await createNewDoctor(
+      userRepository,
+      doctorRepository,
+    );
+    createdDoctorId = doctorResponse.id;
 
     // Create a user for testing
     const userResponse = await findOrCreateUser(
